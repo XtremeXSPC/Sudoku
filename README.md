@@ -6,8 +6,6 @@ A clean, user-friendly, and (maybe in future) feature-rich Sudoku application fo
 
 ## Screenshots
 
-*(It is highly recommended to add your own screenshots here. Place them in a `/screenshots` folder in your repository)*
-
 |                  Game Screen                   |                      New Game Dialog                      |
 |:----------------------------------------------:|:---------------------------------------------------------:|
 | ![Gameplay screenshot](assets/game_screen.png) | ![New game dialog screenshot](assets/new_game_dialog.png) |
