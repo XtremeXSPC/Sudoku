@@ -1,4 +1,4 @@
-# Sudoku - A Classic Android Game in Java
+# Sudoku - A classic Android game in Java
 
 ![Java](https://img.shields.io/badge/language-Java-orange.svg)![Platform](https://img.shields.io/badge/platform-Android-green.svg)![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
