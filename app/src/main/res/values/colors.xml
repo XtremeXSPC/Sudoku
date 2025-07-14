@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- App Specific Colors -->
+    <color name="background_cream">#FFF8E1</color> <!-- Main app background -->
+    <color name="text_brown">#6D4C41</color> <!-- Main text, fixed numbers -->
+    <color name="button_beige">#D7CCC8</color> <!-- Button background -->
+
+    <color name="cell_highlight_color">#B2DFDB</color> <!-- Selected cell highlighting -->
+    <color name="cell_background_dark_color">#E0E0E0</color> <!-- Dark background for 3x3 blocks (alternating) -->
+    <color name="cell_background_light_color">#F0F0F0</color> <!-- Light background for 3x3 blocks (alternating) -->
+
+    <color name="accent_teal">#00796B</color> <!-- Numbers correctly entered by user -->
+    <color name="error_red">#D32F2F</color> <!-- Numbers incorrectly entered by user -->
+
+    <color name="grid_line_thin">#A1887F</color> <!-- Thin grid lines -->
+    <color name="grid_line_thick">#5D4037</color> <!-- Thick grid lines -->
 </resources>

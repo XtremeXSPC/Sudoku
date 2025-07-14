@@ -14,7 +14,6 @@ import java.util.Stack;
  * Represents the state and logic of a Sudoku board.
  * This class manages puzzle generation, move validation, cell states,
  * and the history of moves for the undo functionality.
- * This is the Java translation of the original Kotlin class.
  */
 public class SudokuBoard implements Parcelable {
 
@@ -84,7 +83,6 @@ public class SudokuBoard implements Parcelable {
         this.movesHistory = new Stack<>();
     }
 
-
     /**
      * Generates a new Sudoku puzzle with the specified difficulty.
      * @param difficulty The difficulty level for the new puzzle.
@@ -115,7 +113,6 @@ public class SudokuBoard implements Parcelable {
             }
         }
     }
-
 
     /**
      * Retrieves the cell at the specified row and column.
@@ -211,11 +208,65 @@ public class SudokuBoard implements Parcelable {
         return errors;
     }
 
+    /**
+     * Checks if the current user-entered numbers are correct according to the solution.
+     * It only validates non-fixed cells that have a value.
+     * @return {@code true} if all user-entered numbers match the solution, {@code false} otherwise.
+     */
+    public boolean areAllUserCellsCorrect() {
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                SudokuCell cell = board[r][c];
+                // Check only user-entered (non-fixed) cells with a value.
+                if (!cell.isFixed() && cell.getValue() != 0) {
+                    if (cell.getValue() != solutionBoard[r][c]) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Checks if the current state of the board is valid according to basic Sudoku rules
+     * (no duplicates in any row, column, or 3x3 subgrid). This check does not
+     * use the solution, it only validates the current numbers on the board against each other.
+     * @return {@code true} if the current board is valid by the rules, {@code false} otherwise.
+     */
+    public boolean isCurrentBoardStateValidAccordingToRules() {
+        // Create a temporary int array representing the current board values.
+        int[][] currentValues = new int[9][9];
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                currentValues[r][c] = board[r][c].getValue();
+            }
+        }
+
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                int num = currentValues[r][c];
+                if (num != 0) {
+                    // Temporarily remove the number to check if placing it is "safe"
+                    // against the rest of the numbers on the board.
+                    currentValues[r][c] = 0;
+                    boolean safe = isSafe(currentValues, r, c, num);
+                    // Put the number back.
+                    currentValues[r][c] = num;
+                    if (!safe) {
+                        return false; // Found a rule violation.
+                    }
+                }
+            }
+        }
+        return true; // No rule violations found.
+    }
+
     public Difficulty getCurrentDifficulty() {
         return currentDifficulty;
     }
 
-    /* --- Private Helper Methods --- */
+    /* ----- Private Helper Methods ----- */
 
     /**
      * Resets the logical boards to an empty state.
@@ -363,8 +414,7 @@ public class SudokuBoard implements Parcelable {
         return row >= 0 && row < 9 && col >= 0 && col < 9;
     }
 
-
-    /* --- Parcelable Implementation --- */
+    /* ----- Parcelable Implementation ----- */
 
     protected SudokuBoard(Parcel in) {
         currentDifficulty = Difficulty.valueOf(in.readString());
@@ -394,7 +444,7 @@ public class SudokuBoard implements Parcelable {
         }
     }
 
-    public static final Creator<SudokuBoard> CREATOR = new Creator<SudokuBoard>() {
+    public static final Creator<SudokuBoard> CREATOR = new Creator<>() {
         @Override
         public SudokuBoard createFromParcel(Parcel in) {
             return new SudokuBoard(in);

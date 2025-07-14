@@ -10,29 +10,15 @@ import java.util.Set;
 
 /**
  * Represents a single cell within a Sudoku grid.
- * Each cell contains:
- * <ul>
- *     <li>A numeric {@code value} (0 if the cell is empty).</li>
- *     <li>An {@code isFixed} flag indicating whether the cell's value is preset and cannot be changed by the user.</li>
- *     <li>An {@code isCorrect} flag indicating whether the current cell value is correct according to the Sudoku solution.</li>
- *     <li>A {@code Set} of {@code notes} that the user can input as possible candidates for the cell.</li>
- * </ul>
- * This class implements {@link Parcelable} to allow instances of {@code SudokuCell}
- * to be passed between Android components (e.g., between Activities or Fragments).
- * This is the Java version of a typical Kotlin data class. Note the need to explicitly define:
- * <ul>
- *     <li>Fields</li>
- *     <li>Constructors</li>
- *     <li>Getter and setter methods</li>
- *     <li>The {@link Parcelable} implementation</li>
- * </ul>
+ * Each cell contains a numeric value, fixed state, correctness flag, and user notes.
+ * Implements {@link Parcelable} for Android component communication.
  */
 public class SudokuCell implements Parcelable {
 
     // Fields
-    private int value; // The numeric value of the cell (0 if empty)
-    private boolean isFixed; // true if the value is preset and unmodifiable
-    private boolean isCorrect; // true if the current value is correct
+    private int value;          // The numeric value of the cell (0 if empty)
+    private boolean isFixed;    // true if the value is preset and unmodifiable
+    private boolean isCorrect;  // true if the current value is correct
     private Set<Integer> notes; // Set of notes entered by the user
 
     /**
@@ -191,7 +177,7 @@ public class SudokuCell implements Parcelable {
      * Used by the Android system to create new instances of the {@code SudokuCell} class
      * from a {@link Parcel}.
      */
-    public static final Creator<SudokuCell> CREATOR = new Creator<SudokuCell>() {
+    public static final Creator<SudokuCell> CREATOR = new Creator<>() {
         /**
          * Creates a new instance of {@code SudokuCell}, populating it with data read from the Parcel.
          * @param in The Parcel to read data from.

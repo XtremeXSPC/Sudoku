@@ -1,5 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme -->
+    <style name="Base.Theme.Sudoku" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary and secondary colors customized for the Sudoku app -->
+        <item name="colorPrimary">@color/text_brown</item>
+        <item name="colorPrimaryVariant">@color/button_beige</item>
+        <item name="colorOnPrimary">@color/background_cream</item>
 
-    <style name="Theme.Sudoku" parent="android:Theme.Material.Light.NoActionBar" />
+        <item name="colorSecondary">@color/accent_teal</item> <!-- Secondary/accent color -->
+        <item name="colorSecondaryVariant">@color/cell_highlight_color</item> <!-- Secondary variant -->
+        <item name="colorOnSecondary">@color/text_brown</item> <!-- Text over secondary color -->
+
+        <!-- Status bar color -->
+        <item name="android:statusBarColor">?attr/colorPrimary</item> <!-- or a specific color -->
+
+        <!-- Window background color -->
+        <item name="android:windowBackground">@color/background_cream</item>
+
+        <!-- Other theme customizations -->
+    </style>
+
+    <style name="Theme.Sudoku" parent="Base.Theme.Sudoku" />
 </resources>
