@@ -4,108 +4,156 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_cream"
+    android:background="@color/app_background"
+    android:padding="8dp"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/titleText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
-        android:text="@string/title_sudoku"
-        android:textColor="@color/text_brown"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <!-- =========== NUOVA STATUS BAR ============ -->
+    <!-- ========================================= -->
 
-    <LinearLayout
-        android:id="@+id/statsLayout"
+
+    <!-- Contenitore Griglia (vincolato alla nuova status bar) -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/statusBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:orientation="horizontal"
+        android:layout_marginTop="100dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/titleText">
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Elemento a Sinistra: Errori -->
+
+        <!-- Elemento Centrale: Punteggio e Difficoltà -->
+        <TextView
+            android:id="@+id/errorText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/status_bar_text_color"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="1.0"
+            tools:text="Errori: 0" />
 
         <TextView
             android:id="@+id/scoreText"
-            style="@style/StatsTextViewStyle"
-            android:text="@string/score_label_default" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/status_bar_score_color"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Punteggio: 0" />
 
         <TextView
-            android:id="@+id/errorText"
-            style="@style/StatsTextViewStyle"
-            android:text="@string/errors_label_default" />
+            android:id="@+id/difficultyText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/status_bar_text_color"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="@id/scoreText"
+            app:layout_constraintStart_toStartOf="@id/scoreText"
+            app:layout_constraintTop_toBottomOf="@id/scoreText"
+            tools:text="Difficile" />
 
+        <!-- Elemento a Destra: Timer -->
         <TextView
             android:id="@+id/timerText"
             style="@style/StatsTextViewStyle"
-            android:text="@string/timer_default" />
-    </LinearLayout>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/status_bar_text_color"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="1.0"
+            tools:text="@string/timer_default" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <FrameLayout
         android:id="@+id/sudokuContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@id/numberPad"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/statusBar"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/statsLayout">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/numberPad">
 
         <com.example.sudoku.SudokuGridView
             android:id="@+id/sudokuGridView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"/>
+
+        <com.example.sudoku.HighlightOverlayView
+            android:id="@+id/highlightOverlayView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 
         <GridLayout
             android:id="@+id/sudokuGridOverlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:columnCount="9"
-            android:rowCount="9" />
+            android:rowCount="9"/>
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
     </FrameLayout>
 
+    <!-- Tastierino Numerico -->
     <GridLayout
         android:id="@+id/numberPad"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp"
         android:columnCount="9"
-        android:rowCount="1"
-        android:useDefaultMargins="true"
-        app:layout_constraintBottom_toTopOf="@id/actionButtonsLayout"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintBottom_toTopOf="@id/undoButton"/>
 
-    <LinearLayout
-        android:id="@+id/actionButtonsLayout"
+    <!-- Pulsanti Azione -->
+
+    <Button
+        android:id="@+id/undoButton"
+        style="@style/ActionButtonStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:layout_marginHorizontal="16dp"
-        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        android:text="@string/undo_button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/newGameButton"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/newGameButton"
+        style="@style/ActionButtonStyle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/new_game_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toEndOf="@id/undoButton" />
 
-        <Button
-            android:id="@+id/undoButton"
-            style="@style/ActionButtonStyle"
-            android:text="@string/undo_button"
-            android:layout_marginEnd="8dp"/>
-
-        <Button
-            android:id="@+id/newGameButton"
-            style="@style/ActionButtonStyle"
-            android:text="@string/new_game_button"
-            android:layout_marginStart="8dp"/>
-    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

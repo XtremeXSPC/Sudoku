@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sudoku</string>
+    <string name="title_sudoku">Sudoku</string>
+    <string name="score_label">Score:</string>
+    <string name="score_label_default">Score: 0</string>
+    <string name="score_format">Score: %d</string>
+    <string name="errors_label">Errors:</string>
+    <string name="errors_label_default">Errors: 0</string>
+    <string name="difficulty_placeholder">Difficulty</string>
+    <string name="timer_default">00:00</string>
+    <string name="undo_button">Undo</string>
+    <string name="new_game_button">New Game</string>
+    <string name="no_moves_to_undo">No moves to undo</string>
+    <string name="new_game_dialog_title">New game</string>
+    <string name="new_game_dialog_message">Choose the difficulty:</string>
+    <string name="difficulty_easy">Easy</string>
+    <string name="difficulty_medium">Medium</string>
+    <string name="difficulty_hard">Hard</string>
+    <string name="game_over_congratulations_title">Congratulations!</string>
+    <string name="game_over_success_message">You have completed the Sudoku correctly!</string>
+    <string name="game_over_oops_title">Ops!</string>
+    <string name="game_over_fail_message">The grid is complete, but incorrect. Double-check your numbers.</string>
+    <string name="game_over_final_score_format">Final score: %d</string>
+    <string name="close_button">Close</string>
+    <string name="errors_format">Errors: %d</string>
+</resources>

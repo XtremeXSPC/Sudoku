@@ -4,9 +4,17 @@
     <color name="white">#FFFFFFFF</color>
 
     <!-- App Specific Colors -->
+    <color name="app_background">#F5F5F5</color> <!-- Main app background -->
+    <color name="text_brown_light">#6D4C41</color> <!-- Main text, fixed numbers -->
+
+    <color name="status_bar_score_color">#008577</color>
+    <color name="status_bar_text_color">#856A5D</color>
+
     <color name="background_cream">#FFF8E1</color> <!-- Main app background -->
     <color name="text_brown">#6D4C41</color> <!-- Main text, fixed numbers -->
     <color name="button_beige">#D7CCC8</color> <!-- Button background -->
+    <color name="button_background_color">#D7CCC8</color> <!-- Button background -->
+    <color name="button_border_color">#A1887F</color> <!-- Button border -->
 
     <color name="cell_highlight_color">#B2DFDB</color> <!-- Selected cell highlighting -->
     <color name="cell_background_dark_color">#E0E0E0</color> <!-- Dark background for 3x3 blocks (alternating) -->
@@ -17,4 +25,9 @@
 
     <color name="grid_line_thin">#A1887F</color> <!-- Thin grid lines -->
     <color name="grid_line_thick">#5D4037</color> <!-- Thick grid lines -->
+
+    <color name="highlight_row_col">#34FFD2B0</color>
+    <color name="highlight_block">#34FFD2B0</color>
+    <color name="highlight_selected_cell">#34DF9F81</color>
+
 </resources>

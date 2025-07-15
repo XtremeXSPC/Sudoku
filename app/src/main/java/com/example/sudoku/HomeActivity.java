@@ -6,8 +6,19 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.sudoku.databinding.ActivityHomeBinding;
 
+/**
+ * HomeActivity is the entry point of the Sudoku application. It allows users to select the difficulty level of the
+ * Sudoku game they want to play.
+ */
 public class HomeActivity extends AppCompatActivity {
 
+    /**
+     * Called when the activity is starting. This is where you should perform one-time initialization such as setting up the
+     * UI and listeners.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down then this Bundle
+     *        contains the data it most recently supplied in onSaveInstanceState(Bundle).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -20,6 +31,11 @@ public class HomeActivity extends AppCompatActivity {
         binding.hardButton.setOnClickListener(v -> startGame(SudokuBoard.Difficulty.HARD));
     }
 
+    /**
+     * Starts the game with the selected difficulty level.
+     *
+     * @param difficulty The difficulty level chosen by the user.
+     */
     private void startGame(SudokuBoard.Difficulty difficulty) {
         // Create an Intent to launch MainActivity
         Intent intent = new Intent(HomeActivity.this, MainActivity.class);

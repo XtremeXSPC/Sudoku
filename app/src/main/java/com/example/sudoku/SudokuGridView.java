@@ -6,13 +6,13 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 /**
- * A custom View that draws the basic Sudoku grid (lines and block backgrounds).
- * The numbers and cell highlighting are handled by an overlay of TextViews
- * placed on top of this view.
+ * A custom View that draws the basic Sudoku grid (lines and block backgrounds). The numbers and cell highlighting are
+ * handled by an overlay of TextViews placed on top of this view.
  */
 public class SudokuGridView extends View {
 
@@ -23,12 +23,13 @@ public class SudokuGridView extends View {
     private final Paint paintBlockBackgroundDark;
 
     /**
-     * Calculates cell size based on the view's width.
-     * In Kotlin this was a custom getter property. In Java, it's a private method.
+     * Calculates cell size based on the view's width. In Kotlin this was a custom getter property. In Java, it's a private
+     * method.
+     * 
      * @return The calculated size for a single cell.
      */
     private float getCellSize() {
-        return (getWidth() > 0) ? (float)getWidth() / 9.0f : 0f;
+        return (getWidth() > 0) ? (float) getWidth() / 9.0f : 0f;
     }
 
     // Constructors in Java. This replaces the @JvmOverloads constructor in Kotlin.
@@ -60,11 +61,13 @@ public class SudokuGridView extends View {
 
         paintBlockBackgroundLight = new Paint();
         paintBlockBackgroundLight.setStyle(Paint.Style.FILL);
-        paintBlockBackgroundLight.setColor(ContextCompat.getColor(context, R.color.cell_background_light_color));
+        paintBlockBackgroundLight
+                .setColor(ContextCompat.getColor(context, R.color.cell_background_light_color));
 
         paintBlockBackgroundDark = new Paint();
         paintBlockBackgroundDark.setStyle(Paint.Style.FILL);
-        paintBlockBackgroundDark.setColor(ContextCompat.getColor(context, R.color.cell_background_dark_color));
+        paintBlockBackgroundDark
+                .setColor(ContextCompat.getColor(context, R.color.cell_background_dark_color));
     }
 
 
@@ -80,10 +83,11 @@ public class SudokuGridView extends View {
 
     /**
      * The main drawing method. It first draws the background blocks, then the grid lines.
+     * 
      * @param canvas The canvas on which the background will be drawn.
      */
     @Override
-    protected void onDraw(Canvas canvas) {
+    protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
         if (getCellSize() == 0f) {
             return;
@@ -107,13 +111,8 @@ public class SudokuGridView extends View {
                     paint = paintBlockBackgroundDark;
                 }
 
-                canvas.drawRect(
-                        colBlock * 3 * cellSize,
-                        rowBlock * 3 * cellSize,
-                        (colBlock + 1) * 3 * cellSize,
-                        (rowBlock + 1) * 3 * cellSize,
-                        paint
-                );
+                canvas.drawRect(colBlock * 3 * cellSize, rowBlock * 3 * cellSize,
+                        (colBlock + 1) * 3 * cellSize, (rowBlock + 1) * 3 * cellSize, paint);
             }
         }
     }
@@ -123,7 +122,7 @@ public class SudokuGridView extends View {
      */
     private void drawLines(Canvas canvas) {
         float cellSize = getCellSize();
-        float viewSize = (float)getWidth(); // or getHeight(), since it's a square
+        float viewSize = (float) getWidth(); // or getHeight(), since it's a square
 
         // Draw vertical lines
         for (int i = 0; i <= 9; i++) {

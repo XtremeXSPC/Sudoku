@@ -14,16 +14,18 @@ import com.example.sudoku.SudokuBoard;
 import com.example.sudoku.SudokuCell;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
- * ViewModel for the Sudoku game.
- * It holds the game state, handles user interactions, and communicates with the UI (Activity/Fragment)
- * via LiveData, ensuring that the state survives configuration changes.
- * This is the Java translation of the original Kotlin ViewModel.
+ * ViewModel for the Sudoku game. It holds the game state, handles user interactions, and communicates with
+ * the UI (Activity/Fragment) via LiveData, ensuring that the state survives configuration changes. This is
+ * the Java translation of the original Kotlin ViewModel.
  */
 public class SudokuViewModel extends ViewModel {
 
-    // --- LiveData Fields ---
+    /* ----- LiveData Fields ----- */
     // The private MutableLiveData can be changed only within this ViewModel.
     private final MutableLiveData<SudokuBoard> _sudokuBoard = new MutableLiveData<>();
     private final MutableLiveData<Pair<Integer, Integer>> _selectedCell = new MutableLiveData<>();
@@ -31,29 +33,60 @@ public class SudokuViewModel extends ViewModel {
     private final MutableLiveData<Integer> _errorCount = new MutableLiveData<>(0);
     private final MutableLiveData<Integer> _score = new MutableLiveData<>(0);
     private final MutableLiveData<Boolean> _isGameWon = new MutableLiveData<>(false);
-    private final MutableLiveData<Boolean> _isGameOverWithIncorrectBoard = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> _isGameOverWithIncorrectBoard =
+            new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> _isGenerating = new MutableLiveData<>(false);
+    private int totalErrorsThisGame = 0;
 
-    // --- Timer related fields ---
+    /* ----- Timer related fields ----- */
     private final Handler timerHandler = new Handler(Looper.getMainLooper());
     private Runnable timerRunnable;
     private long chronometerBase = 0L;
     private boolean isTimerRunning = false;
 
-    /**
-     * The public, immutable LiveData that the UI can observe.
-     * This follows the recommended pattern of exposing only read-only LiveData to observers.
-     */
-    public LiveData<SudokuBoard> getSudokuBoard() { return _sudokuBoard; }
-    public LiveData<Pair<Integer, Integer>> getSelectedCell() { return _selectedCell; }
-    public LiveData<Long> getElapsedTimeInMillis() { return _elapsedTimeInMillis; }
-    public LiveData<Integer> getErrorCount() { return _errorCount; }
-    public LiveData<Integer> getScore() { return _score; }
-    public LiveData<Boolean> isGameWon() { return _isGameWon; }
-    public LiveData<Boolean> isGameOverWithIncorrectBoard() { return _isGameOverWithIncorrectBoard; }
+    // Executor for background tasks
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private Future<?> generationTask;
 
     /**
-     * Constructor for the ViewModel.
-     * Corresponds to the `init` block in Kotlin. It starts a new game upon creation.
+     * The public, immutable LiveData that the UI can observe. This follows the recommended pattern of exposing
+     * only read-only LiveData to observers.
+     */
+    public LiveData<SudokuBoard> getSudokuBoard() {
+        return _sudokuBoard;
+    }
+
+    public LiveData<Pair<Integer, Integer>> getSelectedCell() {
+        return _selectedCell;
+    }
+
+    public LiveData<Long> getElapsedTimeInMillis() {
+        return _elapsedTimeInMillis;
+    }
+
+    public LiveData<Integer> getErrorCount() {
+        return _errorCount;
+    }
+
+    public LiveData<Integer> getScore() {
+        return _score;
+    }
+
+    public LiveData<Boolean> isGameWon() {
+        return _isGameWon;
+    }
+
+    public LiveData<Boolean> isGameOverWithIncorrectBoard() {
+        return _isGameOverWithIncorrectBoard;
+    }
+
+    public LiveData<Boolean> isGenerating() {
+        return _isGenerating;
+    }
+
+    /**
+     * Constructor for the ViewModel. Corresponds to the `init` block in Kotlin. It starts a new game upon
+     * creation.
      */
     public SudokuViewModel() {
         // startNewGame(SudokuBoard.Difficulty.MEDIUM);
@@ -61,23 +94,51 @@ public class SudokuViewModel extends ViewModel {
 
     /**
      * Starts a new Sudoku game with the specified difficulty.
+     * 
      * @param difficulty The desired difficulty level.
      */
     public void startNewGame(SudokuBoard.Difficulty difficulty) {
-        SudokuBoard newBoard = new SudokuBoard();
-        newBoard.generateNewPuzzle(difficulty);
-        _sudokuBoard.setValue(newBoard);
-        _selectedCell.setValue(null);
-        _errorCount.setValue(0);
-        _score.setValue(0);
-        _isGameWon.setValue(false);
-        _isGameOverWithIncorrectBoard.setValue(false);
-        resetAndStartTimer();
-        updateScore();
+        // Cancel any previously running generation task.
+        if (generationTask != null && !generationTask.isDone()) {
+            generationTask.cancel(true); // Pass true to interrupt the thread.
+        }
+
+        _isGenerating.setValue(true);
+        generationTask = executor.submit(() -> {
+            try {
+                SudokuBoard newBoard = new SudokuBoard();
+                newBoard.generateNewPuzzle(difficulty);
+
+                // If the task was cancelled, don't update the UI.
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
+
+                // Post the result back to the main thread
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    _sudokuBoard.setValue(newBoard);
+                    _selectedCell.setValue(null);
+                    _errorCount.setValue(0);
+                    _score.setValue(0);
+                    this.totalErrorsThisGame = 0;
+                    _isGameWon.setValue(false);
+                    _isGameOverWithIncorrectBoard.setValue(false);
+                    _isGenerating.setValue(false);
+                    resetAndStartTimer();
+                });
+            } catch (Exception e) {
+                // Log the exception, especially if it's an InterruptedException
+                if (e instanceof InterruptedException) {
+                    Thread.currentThread().interrupt(); // Preserve the interrupted status
+                }
+                // Optionally, handle the error state in the UI
+            }
+        });
     }
 
     /**
      * Selects a cell on the grid.
+     * 
      * @param row The row of the selected cell (0-8).
      * @param col The column of the selected cell (0-8).
      */
@@ -86,44 +147,85 @@ public class SudokuViewModel extends ViewModel {
     }
 
     /**
-     * Inputs a number into the currently selected cell.
-     * If the move is invalid, it increments the error count.
+     * Inputs a number into the currently selected cell. If the move is invalid, it increments the error count.
      * Updates the UI and checks the game status.
+     * 
      * @param number The number to input (1-9). If 0, the cell is cleared.
      */
     public void inputNumber(int number) {
         SudokuBoard board = _sudokuBoard.getValue();
         Pair<Integer, Integer> selection = _selectedCell.getValue();
 
-        if (board == null || selection == null) return;
+        if (board == null || selection == null)
+            return;
 
         int row = selection.first;
         int col = selection.second;
         SudokuCell cell = board.getCell(row, col);
 
         if (cell != null && !cell.isFixed()) {
-            board.setCellValue(row, col, number); // This method updates the cell's isCorrect flag.
+            int oldValue = cell.getValue();
+            if (oldValue == number)
+                return; // No change, do nothing
 
-            _errorCount.setValue(board.countUserErrors());
+            boolean isError = false;
+            int scoreChange = 0;
+            int currentScore = Objects.requireNonNullElse(_score.getValue(), 0);
+
+            if (number != 0) {
+                if (board.isMoveCorrect(row, col, number)) {
+                    scoreChange = switch (board.getCurrentDifficulty()) {
+                        case EASY -> 10;
+                        case MEDIUM -> 15;
+                        case HARD -> 20;
+                    };
+                } else {
+                    isError = true;
+                    this.totalErrorsThisGame++;
+                    _errorCount.setValue(this.totalErrorsThisGame);
+                    scoreChange = -50;
+                }
+            }
+
+            // Calculate the actual score change, ensuring score doesn't go below zero
+            int newScore = Math.max(0, currentScore + scoreChange);
+            int actualScoreChange = newScore - currentScore;
+
+            // Set the cell value and record the move with the actual score change and error status
+            board.setCellValue(row, col, number, actualScoreChange, isError);
+
+            // Update the score
+            _score.setValue(newScore);
+
             _sudokuBoard.setValue(board); // Notify observers that the board has changed.
-            updateScore();
             checkGameStatus();
         }
     }
 
     /**
      * Undoes the last move.
+     * 
      * @return True if a move was undone, false otherwise.
      */
     public boolean undoLastMove() {
         SudokuBoard board = _sudokuBoard.getValue();
-        if (board == null) return false;
+        if (board == null)
+            return false;
 
-        boolean success = board.undoMove();
-        if (success) {
+        SudokuBoard.MoveRecord lastMove = board.undoMove();
+
+        if (lastMove != null) {
             _sudokuBoard.setValue(board); // Notify observers
-            _errorCount.setValue(board.countUserErrors());
-            updateScore();
+
+            // Revert the score change
+            int currentScore = Objects.requireNonNullElse(_score.getValue(), 0);
+            _score.setValue(currentScore - lastMove.getScoreChange());
+
+            // If the undone move was an error, decrement the error count
+            if (lastMove.wasError()) {
+                this.totalErrorsThisGame--;
+                _errorCount.setValue(this.totalErrorsThisGame);
+            }
 
             // The game might no longer be in a won/lost state after an undo.
             _isGameWon.setValue(false);
@@ -133,13 +235,14 @@ public class SudokuViewModel extends ViewModel {
             if (!isTimerRunning && !board.isBoardFull()) {
                 startTimerIfNotRunning();
             }
+            return true;
         }
-        return success;
+        return false;
     }
 
     /**
-     * Saves the current state of the ViewModel.
-     * Used for onSaveInstanceState in the Activity.
+     * Saves the current state of the ViewModel. Used for onSaveInstanceState in the Activity.
+     * 
      * @return A Pair containing the SudokuBoard state and a Bundle with other state information.
      */
     public Pair<SudokuBoard, Bundle> saveState() {
@@ -151,15 +254,17 @@ public class SudokuViewModel extends ViewModel {
         }
         bundle.putLong("chronometerBase", chronometerBase);
         bundle.putBoolean("isTimerRunning", isTimerRunning);
-        bundle.putLong("elapsedTimeInMillis", Objects.requireNonNullElse(_elapsedTimeInMillis.getValue(), 0L));
+        bundle.putLong("elapsedTimeInMillis",
+                Objects.requireNonNullElse(_elapsedTimeInMillis.getValue(), 0L));
         bundle.putInt("errorCount", Objects.requireNonNullElse(_errorCount.getValue(), 0));
+        bundle.putInt("score", Objects.requireNonNullElse(_score.getValue(), 0));
 
         return new Pair<>(_sudokuBoard.getValue(), bundle);
     }
 
     /**
-     * Restores the state of the ViewModel.
-     * Used from onCreate or onRestoreInstanceState in the Activity.
+     * Restores the state of the ViewModel. Used from onCreate or onRestoreInstanceState in the Activity.
+     * 
      * @param boardState The SudokuBoard state to restore.
      * @param bundleState Bundle containing other state information.
      */
@@ -181,8 +286,7 @@ public class SudokuViewModel extends ViewModel {
         _elapsedTimeInMillis.setValue(bundleState.getLong("elapsedTimeInMillis", 0L));
         _errorCount.setValue(bundleState.getInt("errorCount",
                 _sudokuBoard.getValue() != null ? _sudokuBoard.getValue().countUserErrors() : 0));
-
-        updateScore();
+        _score.setValue(bundleState.getInt("score", 0));
 
         // If the game was running and not finished, restart the timer.
         if (isTimerRunning) {
@@ -196,14 +300,14 @@ public class SudokuViewModel extends ViewModel {
         }
     }
 
-
-    /* --- Private Helper Methods --- */
+    /* ----- Private Helper Methods ----- */
 
     private void startTimerIfNotRunning() {
         if (!isTimerRunning) {
             if (chronometerBase == 0L) {
                 // On first start or after a reset
-                chronometerBase = SystemClock.elapsedRealtime() - Objects.requireNonNullElse(_elapsedTimeInMillis.getValue(), 0L);
+                chronometerBase = SystemClock.elapsedRealtime()
+                        - Objects.requireNonNullElse(_elapsedTimeInMillis.getValue(), 0L);
             }
             // otherwise, chronometerBase is already correctly set from a restored state.
 
@@ -240,44 +344,35 @@ public class SudokuViewModel extends ViewModel {
     }
 
     /**
-     * Calculates the score based on difficulty, time, and errors.
-     */
-    private void updateScore() {
-        SudokuBoard board = _sudokuBoard.getValue();
-        if (board == null) return;
-
-        long timeInMillis = Objects.requireNonNullElse(_elapsedTimeInMillis.getValue(), 0L);
-        int errors = Objects.requireNonNullElse(_errorCount.getValue(), 0);
-
-        long timePenalty = timeInMillis / 1000 / 2; // 1 point every 2 seconds
-        int errorPenalty = errors * 50;
-
-        int difficultyMultiplier = switch (board.getCurrentDifficulty()) {
-            case EASY -> 1;
-            case HARD -> 3;
-            default -> // MEDIUM
-                    2;
-        };
-        int baseScore = 10000;
-
-        int finalScore = (int) ((baseScore * difficultyMultiplier) - timePenalty - errorPenalty);
-        _score.setValue(Math.max(0, finalScore));
-    }
-
-    /**
-     * Checks if the game is over (either won or the board is full but incorrect).
-     * Updates the relevant LiveData for the UI to observe.
+     * Checks if the game is over (either won or the board is full but incorrect). Updates the relevant LiveData
+     * for the UI to observe.
      */
     private void checkGameStatus() {
         SudokuBoard board = _sudokuBoard.getValue();
-        if (board == null) return;
+        if (board == null)
+            return;
 
         if (board.isBoardFull()) {
             stopTimer();
-            // Full check: board is valid by rules AND all user numbers are correct against the solution
-            if (board.isCurrentBoardStateValidAccordingToRules() && board.areAllUserCellsCorrect()) {
+
+            // Check if the board is valid and all user cells are correct
+            if (board.isCurrentBoardStateValidAccordingToRules()
+                    && board.areAllUserCellsCorrect()) {
+                // Game won - calculate final score with bonus
+                long timeInMillis = Objects.requireNonNullElse(_elapsedTimeInMillis.getValue(), 0L);
+                long timeBonus = Math.max(0, 600 - (timeInMillis / 1000)); // Example bonus: 600 seconds base
+
+                int difficultyBonus = switch (board.getCurrentDifficulty()) {
+                    case EASY -> 500;
+                    case HARD -> 2000;
+                    default -> 1000;
+                };
+
+                int currentScore = Objects.requireNonNullElse(_score.getValue(), 0);
+                _score.setValue((int) (currentScore + timeBonus + difficultyBonus));
                 _isGameWon.setValue(true);
             } else {
+                // Board is full but incorrect
                 _isGameOverWithIncorrectBoard.setValue(true);
             }
         } else {
@@ -286,12 +381,16 @@ public class SudokuViewModel extends ViewModel {
     }
 
     /**
-     * This method is called when the ViewModel is about to be destroyed.
-     * It's the perfect place to clean up resources, like stopping the timer handler.
+     * This method is called when the ViewModel is about to be destroyed. It's the perfect place to clean up
+     * resources, like stopping the timer handler.
      */
     @Override
     protected void onCleared() {
         super.onCleared();
         stopTimer(); // Stop the handler callbacks to prevent memory leaks.
+        if (generationTask != null && !generationTask.isDone()) {
+            generationTask.cancel(true);
+        }
+        executor.shutdown();
     }
 }
