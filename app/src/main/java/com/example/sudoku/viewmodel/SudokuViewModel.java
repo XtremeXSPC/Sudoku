@@ -56,7 +56,7 @@ public class SudokuViewModel extends ViewModel {
      * Corresponds to the `init` block in Kotlin. It starts a new game upon creation.
      */
     public SudokuViewModel() {
-        startNewGame(SudokuBoard.Difficulty.MEDIUM);
+        // startNewGame(SudokuBoard.Difficulty.MEDIUM);
     }
 
     /**
@@ -252,18 +252,12 @@ public class SudokuViewModel extends ViewModel {
         long timePenalty = timeInMillis / 1000 / 2; // 1 point every 2 seconds
         int errorPenalty = errors * 50;
 
-        int difficultyMultiplier;
-        switch (board.getCurrentDifficulty()) {
-            case EASY:
-                difficultyMultiplier = 1;
-                break;
-            case HARD:
-                difficultyMultiplier = 3;
-                break;
-            default: // MEDIUM
-                difficultyMultiplier = 2;
-                break;
-        }
+        int difficultyMultiplier = switch (board.getCurrentDifficulty()) {
+            case EASY -> 1;
+            case HARD -> 3;
+            default -> // MEDIUM
+                    2;
+        };
         int baseScore = 10000;
 
         int finalScore = (int) ((baseScore * difficultyMultiplier) - timePenalty - errorPenalty);

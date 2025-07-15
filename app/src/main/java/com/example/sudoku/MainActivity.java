@@ -1,6 +1,7 @@
 package com.example.sudoku;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -31,6 +32,9 @@ import java.util.Objects;
  */
 public class MainActivity extends AppCompatActivity {
 
+    // Intent keys
+    public static final String EXTRA_DIFFICULTY = "com.example.sudoku.DIFFICULTY";
+
     // ViewBinding and ViewModel declaration.
     private ActivityMainBinding binding;
     private SudokuViewModel viewModel;
@@ -50,18 +54,35 @@ public class MainActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(SudokuViewModel.class);
 
         // State restoration logic.
-        if (savedInstanceState != null) {
-            SudokuBoard boardState;
+        if (savedInstanceState == null) {
+            // This is the first boot, not a rotation. Let's read the intent.
+            SudokuBoard.Difficulty difficulty;
             // Handle the modern and deprecated getParcelable methods based on API level.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                difficulty = getIntent().getSerializableExtra(EXTRA_DIFFICULTY, SudokuBoard.Difficulty.class);
+            } else {
+                // Suppress the deprecation warning for older APIs.
+                difficulty = (SudokuBoard.Difficulty) getIntent().getSerializableExtra(EXTRA_DIFFICULTY);
+            }
+
+            // If for some reason the difficulty is null, we use a default.
+            if (difficulty == null) {
+                difficulty = SudokuBoard.Difficulty.MEDIUM;
+            }
+
+            // We explicitly tell the ViewModel to start a new game.
+            viewModel.startNewGame(difficulty);
+
+        } else {
+            // Restore state after rotation
+            SudokuBoard boardState;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 boardState = savedInstanceState.getParcelable("sudokuBoardState", SudokuBoard.class);
             } else {
-                // Suppress the deprecation warning for older APIs.
                 boardState = savedInstanceState.getParcelable("sudokuBoardState");
             }
-
             Bundle bundleState = savedInstanceState.getBundle("viewModelBundleState");
-            if (bundleState != null) {
+            if (boardState != null && bundleState != null) {
                 viewModel.restoreState(boardState, bundleState);
             }
         }
@@ -81,10 +102,10 @@ public class MainActivity extends AppCompatActivity {
                 initializeSudokuGridOverlay(binding.sudokuContainer.getWidth() / 9);
 
                 // Force an initial UI update based on ViewModel data, especially useful after a rotation.
-                if (viewModel.getSudokuBoard().getValue() != null) {
+                if (viewModel.getSudokuBoard().getValue() != null && cellTextViews[0][0] != null) {
                     updateGridUI(viewModel.getSudokuBoard().getValue());
                 }
-                if (viewModel.getSelectedCell().getValue() != null) {
+                if (viewModel.getSelectedCell().getValue() != null && cellTextViews[0][0] != null) {
                     Pair<Integer, Integer> selection = viewModel.getSelectedCell().getValue();
                     updateSelectedCellUI(selection.first, selection.second);
                 }
@@ -140,7 +161,27 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, getString(R.string.no_moves_to_undo), Toast.LENGTH_SHORT).show();
             }
         });
-        binding.newGameButton.setOnClickListener(v -> showNewGameDialog());
+        binding.newGameButton.setOnClickListener(v -> returnToHome());
+    }
+
+    /**
+     * Ends the current game session and returns to the HomeActivity to start a new one.
+     */
+    private void returnToHome() {
+        // Create an Intent to return to HomeActivity.
+        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+
+        // Add flags to the intent:
+        // FLAG_ACTIVITY_CLEAR_TOP: If HomeActivity is already in the stack, clear all activities above it.
+        // FLAG_ACTIVITY_SINGLE_TOP: Don't create a new instance of HomeActivity if it's already on top.
+        // Together, these flags ensure we return to the existing Home instance without messing up the navigation stack.
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        startActivity(intent);
+
+        // Finish (destroy) the current MainActivity. This is essential to ensure that
+        // when the user presses "back" from the new game, they don't return to an old, finished game screen.
+        finish();
     }
 
     /**
