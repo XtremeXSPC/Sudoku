@@ -6,9 +6,9 @@ A clean, user-friendly, and (maybe in future) feature-rich Sudoku application fo
 
 ## Screenshots
 
-|                  Game Screen                   |                      New Game Dialog                      |
-|:----------------------------------------------:|:---------------------------------------------------------:|
-| ![Gameplay screenshot](assets/game_screen.png) | ![New game dialog screenshot](assets/new_game_dialog.png) |
+|                      New Game Dialog                       |                   Game Screen                   |
+|:----------------------------------------------------------:|:-----------------------------------------------:|
+| ![New game dialog screenshot](assets/new_game_dialog.png)  | ![Gameplay screenshot](assets/game_screen.png)  |
 
 ## Features
 

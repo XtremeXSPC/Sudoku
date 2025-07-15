@@ -4,7 +4,7 @@
     <color name="white">#FFFFFFFF</color>
 
     <!-- App Specific Colors -->
-    <color name="app_background">#F5F5F5</color> <!-- Main app background -->
+    <color name="app_background">#FFF8E1</color> <!-- Main app background -->
     <color name="text_brown_light">#6D4C41</color> <!-- Main text, fixed numbers -->
 
     <color name="status_bar_score_color">#008577</color>
