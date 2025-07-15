@@ -6,9 +6,9 @@ A clean, user-friendly, and (maybe in future) feature-rich Sudoku application fo
 
 ## Screenshots
 
-|                      New Game Dialog                       |                   Game Screen                   |
-|:----------------------------------------------------------:|:-----------------------------------------------:|
-| ![New game dialog screenshot](assets/new_game_dialog.png)  | ![Gameplay screenshot](assets/game_screen.png)  |
+|                      New Game Dialog                      |                  Game Screen                   |
+| :-------------------------------------------------------: | :--------------------------------------------: |
+| ![New game dialog screenshot](assets/new_game_dialog.png) | ![Gameplay screenshot](assets/game_screen.png) |
 
 ## Features
 
@@ -28,24 +28,24 @@ This project is built following modern Android architecture guidelines to ensure
 
 - **Language**: **Java**
 - **Architecture**: **MVVM (Model-View-ViewModel)**
-    - **View**: The `MainActivity` is responsible for observing data and updating the UI. It delegates all logic to the ViewModel.
-    - **ViewModel**: `SudokuViewModel` holds and processes all UI-related data. It survives configuration changes, preventing data loss.
-    - **Model**: The `SudokuBoard` and `SudokuCell` classes represent the game's data and core logic, completely decoupled from the Android Framework.
+  - **View**: The `MainActivity` is responsible for observing data and updating the UI. It delegates all logic to the ViewModel.
+  - **ViewModel**: `SudokuViewModel` holds and processes all UI-related data. It survives configuration changes, preventing data loss.
+  - **Model**: The `SudokuBoard` and `SudokuCell` classes represent the game's data and core logic, completely decoupled from the Android Framework.
 - **Android Jetpack Components**:
-    - **ViewModel**: To manage UI-related data in a lifecycle-conscious way.
-    - **LiveData**: To build data objects that notify views when the underlying database changes. Used for communication between the `ViewModel` and the `Activity`.
-    - **ViewBinding**: To safely and easily interact with views defined in XML layouts.
+  - **ViewModel**: To manage UI-related data in a lifecycle-conscious way.
+  - **LiveData**: To build data objects that notify views when the underlying database changes. Used for communication between the `ViewModel` and the `Activity`.
+  - **ViewBinding**: To safely and easily interact with views defined in XML layouts.
 - **UI**:
-    - **XML Layouts**: For defining the static UI structure.
-    - **Custom Views**: `SudokuGridView` is a custom-drawn view responsible for rendering the grid lines and block backgrounds efficiently.
+  - **XML Layouts**: For defining the static UI structure.
+  - **Custom Views**: `SudokuGridView` is a custom-drawn view responsible for rendering the grid lines and block backgrounds efficiently.
 - **Asynchronous Operations**:
-    - A `Handler` is used within the `ViewModel` to manage the game timer without blocking the main thread.
+  - A `Handler` is used within the `ViewModel` to manage the game timer without blocking the main thread.
 
 ## Project structure
 
 The codebase is organized into logical packages to promote a clean separation of concerns.
 
-```
+```tree
 com.example.sudoku
 │
 ├── MainActivity.java           // Main UI Controller (View)
