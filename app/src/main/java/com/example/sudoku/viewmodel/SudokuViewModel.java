@@ -33,8 +33,7 @@ public class SudokuViewModel extends ViewModel {
     private final MutableLiveData<Integer> _errorCount = new MutableLiveData<>(0);
     private final MutableLiveData<Integer> _score = new MutableLiveData<>(0);
     private final MutableLiveData<Boolean> _isGameWon = new MutableLiveData<>(false);
-    private final MutableLiveData<Boolean> _isGameOverWithIncorrectBoard =
-            new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> _isGameOverWithIncorrectBoard = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _isGenerating = new MutableLiveData<>(false);
     private int totalErrorsThisGame = 0;
 
@@ -94,7 +93,7 @@ public class SudokuViewModel extends ViewModel {
 
     /**
      * Starts a new Sudoku game with the specified difficulty.
-     * 
+     *
      * @param difficulty The desired difficulty level.
      */
     public void startNewGame(SudokuBoard.Difficulty difficulty) {
@@ -138,7 +137,7 @@ public class SudokuViewModel extends ViewModel {
 
     /**
      * Selects a cell on the grid.
-     * 
+     *
      * @param row The row of the selected cell (0-8).
      * @param col The column of the selected cell (0-8).
      */
@@ -149,7 +148,7 @@ public class SudokuViewModel extends ViewModel {
     /**
      * Inputs a number into the currently selected cell. If the move is invalid, it increments the error count.
      * Updates the UI and checks the game status.
-     * 
+     *
      * @param number The number to input (1-9). If 0, the cell is cleared.
      */
     public void inputNumber(int number) {
@@ -175,9 +174,9 @@ public class SudokuViewModel extends ViewModel {
             if (number != 0) {
                 if (board.isMoveCorrect(row, col, number)) {
                     scoreChange = switch (board.getCurrentDifficulty()) {
-                        case EASY -> 10;
-                        case MEDIUM -> 15;
-                        case HARD -> 20;
+                    case EASY -> 10;
+                    case MEDIUM -> 15;
+                    case HARD -> 20;
                     };
                 } else {
                     isError = true;
@@ -204,7 +203,7 @@ public class SudokuViewModel extends ViewModel {
 
     /**
      * Undoes the last move.
-     * 
+     *
      * @return True if a move was undone, false otherwise.
      */
     public boolean undoLastMove() {
@@ -242,7 +241,7 @@ public class SudokuViewModel extends ViewModel {
 
     /**
      * Saves the current state of the ViewModel. Used for onSaveInstanceState in the Activity.
-     * 
+     *
      * @return A Pair containing the SudokuBoard state and a Bundle with other state information.
      */
     public Pair<SudokuBoard, Bundle> saveState() {
@@ -254,8 +253,7 @@ public class SudokuViewModel extends ViewModel {
         }
         bundle.putLong("chronometerBase", chronometerBase);
         bundle.putBoolean("isTimerRunning", isTimerRunning);
-        bundle.putLong("elapsedTimeInMillis",
-                Objects.requireNonNullElse(_elapsedTimeInMillis.getValue(), 0L));
+        bundle.putLong("elapsedTimeInMillis", Objects.requireNonNullElse(_elapsedTimeInMillis.getValue(), 0L));
         bundle.putInt("errorCount", Objects.requireNonNullElse(_errorCount.getValue(), 0));
         bundle.putInt("score", Objects.requireNonNullElse(_score.getValue(), 0));
 
@@ -264,7 +262,7 @@ public class SudokuViewModel extends ViewModel {
 
     /**
      * Restores the state of the ViewModel. Used from onCreate or onRestoreInstanceState in the Activity.
-     * 
+     *
      * @param boardState The SudokuBoard state to restore.
      * @param bundleState Bundle containing other state information.
      */
@@ -356,16 +354,15 @@ public class SudokuViewModel extends ViewModel {
             stopTimer();
 
             // Check if the board is valid and all user cells are correct
-            if (board.isCurrentBoardStateValidAccordingToRules()
-                    && board.areAllUserCellsCorrect()) {
+            if (board.isCurrentBoardStateValidAccordingToRules() && board.areAllUserCellsCorrect()) {
                 // Game won - calculate final score with bonus
                 long timeInMillis = Objects.requireNonNullElse(_elapsedTimeInMillis.getValue(), 0L);
                 long timeBonus = Math.max(0, 600 - (timeInMillis / 1000)); // Example bonus: 600 seconds base
 
                 int difficultyBonus = switch (board.getCurrentDifficulty()) {
-                    case EASY -> 500;
-                    case HARD -> 2000;
-                    default -> 1000;
+                case EASY -> 500;
+                case HARD -> 2000;
+                default -> 1000;
                 };
 
                 int currentScore = Objects.requireNonNullElse(_score.getValue(), 0);

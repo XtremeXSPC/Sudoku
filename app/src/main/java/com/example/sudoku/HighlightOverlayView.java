@@ -33,7 +33,7 @@ public class HighlightOverlayView extends View {
 
     /**
      * Constructor for HighlightOverlayView. Initializes the paint objects used for highlighting.
-     * 
+     *
      * @param context The context in which the view is created.
      * @param attrs The attributes of the XML tag that is inflating the view.
      */
@@ -52,15 +52,14 @@ public class HighlightOverlayView extends View {
 
         // Initialize paint for the selected cell
         highlightPaintSelectedCell = new Paint();
-        highlightPaintSelectedCell
-                .setColor(ContextCompat.getColor(context, R.color.highlight_selected_cell));
+        highlightPaintSelectedCell.setColor(ContextCompat.getColor(context, R.color.highlight_selected_cell));
         highlightPaintSelectedCell.setStyle(Paint.Style.FILL);
     }
 
     /**
      * Draws the highlights on the canvas. This method is called when the view needs to be redrawn. It first highlights the
      * 3x3 block, then the row and column, and finally the selected cell itself, ensuring the selected cell is drawn on top.
-     * 
+     *
      * @param canvas The canvas on which to draw the highlights.
      */
     @Override
@@ -75,24 +74,21 @@ public class HighlightOverlayView extends View {
         // Highlight the 3x3 block
         int startRow = (selectedRow / 3) * 3;
         int startCol = (selectedCol / 3) * 3;
-        canvas.drawRect(startCol * cellSize, startRow * cellSize, (startCol + 3) * cellSize,
-                (startRow + 3) * cellSize, highlightPaintBlock);
+        canvas.drawRect(startCol * cellSize, startRow * cellSize, (startCol + 3) * cellSize, (startRow + 3) * cellSize,
+                highlightPaintBlock);
 
         // Highlight the row and column
-        canvas.drawRect(0, selectedRow * cellSize, 9 * cellSize, (selectedRow + 1) * cellSize,
-                highlightPaintRowCol);
-        canvas.drawRect(selectedCol * cellSize, 0, (selectedCol + 1) * cellSize, 9 * cellSize,
-                highlightPaintRowCol);
+        canvas.drawRect(0, selectedRow * cellSize, 9 * cellSize, (selectedRow + 1) * cellSize, highlightPaintRowCol);
+        canvas.drawRect(selectedCol * cellSize, 0, (selectedCol + 1) * cellSize, 9 * cellSize, highlightPaintRowCol);
 
         // Highlight the selected cell on top of everything else
-        canvas.drawRect(selectedCol * cellSize, selectedRow * cellSize,
-                (selectedCol + 1) * cellSize, (selectedRow + 1) * cellSize,
-                highlightPaintSelectedCell);
+        canvas.drawRect(selectedCol * cellSize, selectedRow * cellSize, (selectedCol + 1) * cellSize,
+                (selectedRow + 1) * cellSize, highlightPaintSelectedCell);
     }
 
     /**
      * Sets the cell to be highlighted and triggers a redraw of the view.
-     * 
+     *
      * @param row The row index of the cell to highlight. Can be null to clear selection.
      * @param col The column index of the cell to highlight. Can be null to clear selection.
      * @param cellSize The size of a single cell in the grid.

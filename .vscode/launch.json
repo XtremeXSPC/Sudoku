@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      //===----------------- Standard Debug Task (macOS) ------------------===//
+      "type": "java",
+      "name": "Android: Debug App",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 8700,
+      "preLaunchTask": "Android: Dev (Build + Run)",
+      "postDebugTask": "Android: Show Logs"
+    },
+    {
+      "type": "java",
+      "name": "Android: Attach Debugger",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 8700
+    },
+    {
+      "type": "java",
+      "name": "Android: Current File",
+      "request": "launch",
+      "mainClass": "${file}"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Android: Build, Run & Debug",
+      "configurations": ["Android: Debug App"],
+      "preLaunchTask": "Android: Dev (Build + Run)",
+      "stopAll": true
+    }
+  ]
+}

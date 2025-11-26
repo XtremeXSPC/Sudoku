@@ -41,8 +41,7 @@ public class SudokuBoard implements Parcelable {
         final int scoreChange;
         final boolean wasError;
 
-        MoveRecord(int row, int col, int oldValue, int newValue, int scoreChange,
-                boolean wasError) {
+        MoveRecord(int row, int col, int oldValue, int newValue, int scoreChange, boolean wasError) {
             this.row = row;
             this.col = col;
             this.oldValue = oldValue;
@@ -93,7 +92,7 @@ public class SudokuBoard implements Parcelable {
 
     /**
      * Generates a new Sudoku puzzle with the specified difficulty.
-     * 
+     *
      * @param difficulty The difficulty level for the new puzzle.
      */
     public void generateNewPuzzle(Difficulty difficulty) throws InterruptedException {
@@ -125,7 +124,7 @@ public class SudokuBoard implements Parcelable {
 
     /**
      * Retrieves the cell at the specified row and column.
-     * 
+     *
      * @param row The row (0-8).
      * @param col The column (0-8).
      * @return The SudokuCell at that position, or null if coordinates are out of bounds.
@@ -170,7 +169,7 @@ public class SudokuBoard implements Parcelable {
 
     /**
      * Undoes the last move made. Restores the previous value of the modified cell.
-     * 
+     *
      * @return The `MoveRecord` of the undone move, or `null` if there are no moves to undo.
      */
     public MoveRecord undoMove() {
@@ -190,7 +189,7 @@ public class SudokuBoard implements Parcelable {
 
     /**
      * Checks if the entire board is filled with numbers.
-     * 
+     *
      * @return `true` if no cell has a value of 0, `false` otherwise.
      */
     public boolean isBoardFull() {
@@ -206,7 +205,7 @@ public class SudokuBoard implements Parcelable {
 
     /**
      * Counts the number of incorrect user-entered values on the board.
-     * 
+     *
      * @return The total count of errors.
      */
     public int countUserErrors() {
@@ -225,7 +224,7 @@ public class SudokuBoard implements Parcelable {
     /**
      * Checks if the current user-entered numbers are correct according to the solution. It only validates non-fixed cells
      * that have a value.
-     * 
+     *
      * @return {@code true} if all user-entered numbers match the solution, {@code false} otherwise.
      */
     public boolean areAllUserCellsCorrect() {
@@ -245,7 +244,7 @@ public class SudokuBoard implements Parcelable {
 
     /**
      * Checks if a given value for a cell is correct according to the solution.
-     * 
+     *
      * @param row The row of the cell.
      * @param col The column of the cell.
      * @param value The value to check.
@@ -262,7 +261,7 @@ public class SudokuBoard implements Parcelable {
      * Checks if the current state of the board is valid according to basic Sudoku rules (no duplicates in any row, column,
      * or 3x3 subgrid). This check does not use the solution, it only validates the current numbers on the board against
      * each other.
-     * 
+     *
      * @return {@code true} if the current board is valid by the rules, {@code false} otherwise.
      */
     public boolean isCurrentBoardStateValidAccordingToRules() {
@@ -314,7 +313,7 @@ public class SudokuBoard implements Parcelable {
 
     /**
      * Recursive backtracking algorithm to fill the solutionBoard.
-     * 
+     *
      * @param row The current row to process.
      * @param col The current column to process.
      * @return `true` if the board was successfully filled, `false` otherwise.
@@ -354,7 +353,7 @@ public class SudokuBoard implements Parcelable {
     /**
      * Removes a specified number of cells from the board to create the puzzle, ensuring that the puzzle still has a unique
      * solution.
-     * 
+     *
      * @param cellsToRemove The number of cells to make empty.
      */
     private void removeNumbersForPuzzle(int cellsToRemove) throws InterruptedException {
@@ -392,7 +391,7 @@ public class SudokuBoard implements Parcelable {
     /**
      * Recursively counts the number of possible solutions for a given grid state. Stops and returns immediately if more
      * than one solution is found.
-     * 
+     *
      * @param currentGrid The current state of the board as a 2D int array.
      * @param count The current count of solutions found.
      * @return The number of solutions (0, 1, or 2 if more than one).
@@ -425,7 +424,7 @@ public class SudokuBoard implements Parcelable {
 
     /**
      * Checks if placing a number in a given cell is valid according to Sudoku rules.
-     * 
+     *
      * @param targetBoard The board to check against.
      * @param row The row of the cell.
      * @param col The column of the cell.
@@ -483,8 +482,8 @@ public class SudokuBoard implements Parcelable {
         movesHistory = new Stack<>();
         int historySize = in.readInt();
         for (int i = 0; i < historySize; i++) {
-            movesHistory.push(new MoveRecord(in.readInt(), in.readInt(), in.readInt(), in.readInt(),
-                    in.readInt(), in.readByte() != 0));
+            movesHistory.push(new MoveRecord(in.readInt(), in.readInt(), in.readInt(), in.readInt(), in.readInt(),
+                    in.readByte() != 0));
         }
     }
 

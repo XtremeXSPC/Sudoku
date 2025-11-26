@@ -1,3 +1,85 @@
 {
-  "java.format.settings.url": ".vscode/eclipse-java-google-style.xml"
+  //===------------- VS Code settings for Android Development -------------===//
+
+  //===------------ Editor Configuration -------------===//
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.wordWrap": "off",
+  "editor.lineNumbers": "on",
+  "editor.rulers": [120],
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+
+  // Enhanced Suggestions
+  "editor.acceptSuggestionOnCommitCharacter": true,
+  "editor.acceptSuggestionOnEnter": "on",
+  "editor.suggestOnTriggerCharacters": true,
+
+  //===------------- Java Configuration --------------===//
+  "java.format.settings.url": ".vscode/java-formatter.xml",
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.import.gradle.enabled": true,
+  "java.import.gradle.wrapper.enabled": true,
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.saveActions.organizeImports": true,
+
+  //===-------------- Files and Search ---------------===//
+  "files.exclude": {
+    "**/.gradle": true,
+    "**/build": true,
+    "**/.idea": true,
+    "**/*.iml": true,
+    "local.properties": true
+  },
+  "files.watcherExclude": {
+    "**/.gradle/**": true,
+    "**/build/**": true,
+    "**/.idea/**": true
+  },
+  "search.exclude": {
+    "**/.gradle": true,
+    "**/build": true,
+    "**/.idea": true
+  },
+
+  //===-------------- Language Specific ---------------===//
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "[kotlin]": {
+    "editor.defaultFormatter": "fwcd.kotlin",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4
+  },
+  "[java]": {
+    "editor.defaultFormatter": "redhat.java",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4
+  },
+  "[xml]": {
+    "editor.defaultFormatter": "redhat.vscode-xml",
+    "editor.tabSize": 2
+  },
+  "[gradle]": {
+    "editor.tabSize": 4
+  },
+  //===------------- Gradle Configuration -------------===//
+  "gradle.nestedProjects": true,
+  "gradle.autoDetect": "on",
+
+  //===-------- Terminal Environment Variables --------===//
+  "terminal.integrated.env.osx": {
+    "ANDROID_HOME": "${env:HOME}/Library/Android/sdk",
+    "ANDROID_SDK_ROOT": "${env:HOME}/Library/Android/sdk"
+  },
+  "terminal.integrated.env.linux": {
+    "ANDROID_HOME": "${env:HOME}/Android/Sdk",
+    "ANDROID_SDK_ROOT": "${env:HOME}/Android/Sdk"
+  },
+
+  //===-------------- XML Configuration ---------------===//
+  "xml.validation.enabled": true,
+  "xml.validation.schema.enabled": "always"
 }

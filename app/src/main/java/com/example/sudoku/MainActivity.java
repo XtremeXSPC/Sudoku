@@ -66,12 +66,10 @@ public class MainActivity extends AppCompatActivity {
             SudokuBoard.Difficulty difficulty;
             // Handle the modern and deprecated getParcelable methods based on API level.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                difficulty = getIntent().getSerializableExtra(EXTRA_DIFFICULTY,
-                        SudokuBoard.Difficulty.class);
+                difficulty = getIntent().getSerializableExtra(EXTRA_DIFFICULTY, SudokuBoard.Difficulty.class);
             } else {
                 // Suppress the deprecation warning for older APIs.
-                difficulty =
-                        (SudokuBoard.Difficulty) getIntent().getSerializableExtra(EXTRA_DIFFICULTY);
+                difficulty = (SudokuBoard.Difficulty) getIntent().getSerializableExtra(EXTRA_DIFFICULTY);
             }
 
             // If for some reason the difficulty is null, we use a default.
@@ -87,8 +85,7 @@ public class MainActivity extends AppCompatActivity {
             // restore its state.
             SudokuBoard boardState;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                boardState =
-                        savedInstanceState.getParcelable(KEY_SUDOKU_BOARD_STATE, SudokuBoard.class);
+                boardState = savedInstanceState.getParcelable(KEY_SUDOKU_BOARD_STATE, SudokuBoard.class);
             } else {
                 boardState = savedInstanceState.getParcelable(KEY_SUDOKU_BOARD_STATE);
             }
@@ -100,11 +97,9 @@ public class MainActivity extends AppCompatActivity {
                 // Fallback: if state is missing, start a new game.
                 SudokuBoard.Difficulty difficulty;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    difficulty = getIntent().getSerializableExtra(EXTRA_DIFFICULTY,
-                            SudokuBoard.Difficulty.class);
+                    difficulty = getIntent().getSerializableExtra(EXTRA_DIFFICULTY, SudokuBoard.Difficulty.class);
                 } else {
-                    difficulty = (SudokuBoard.Difficulty) getIntent()
-                            .getSerializableExtra(EXTRA_DIFFICULTY);
+                    difficulty = (SudokuBoard.Difficulty) getIntent().getSerializableExtra(EXTRA_DIFFICULTY);
                 }
                 if (difficulty == null) {
                     difficulty = SudokuBoard.Difficulty.MEDIUM;
@@ -125,19 +120,16 @@ public class MainActivity extends AppCompatActivity {
                     public void onGlobalLayout() {
                         // It's crucial to remove the listener to prevent it from being called
                         // multiple times.
-                        binding.sudokuContainer.getViewTreeObserver()
-                                .removeOnGlobalLayoutListener(this);
+                        binding.sudokuContainer.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
                         initializeSudokuGridOverlay(binding.sudokuContainer.getWidth() / 9);
 
                         // Force an initial UI update based on ViewModel data, especially useful
                         // after a rotation.
-                        if (viewModel.getSudokuBoard().getValue() != null
-                                && cellTextViews[0][0] != null) {
+                        if (viewModel.getSudokuBoard().getValue() != null && cellTextViews[0][0] != null) {
                             updateGridUI(viewModel.getSudokuBoard().getValue());
                         }
-                        if (viewModel.getSelectedCell().getValue() != null
-                                && cellTextViews[0][0] != null) {
+                        if (viewModel.getSelectedCell().getValue() != null && cellTextViews[0][0] != null) {
                             Pair<Integer, Integer> selection = viewModel.getSelectedCell().getValue();
                             // updateSelectedCellUI(selection.first, selection.second);
                         }
@@ -160,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Maps a Difficulty enum to its corresponding user-friendly string resource ID.
-     * 
+     *
      * @param difficulty The difficulty level from the enum.
      * @return The integer resource ID (e.g., R.string.difficulty_easy) for the difficulty string.
      */
@@ -170,9 +162,9 @@ public class MainActivity extends AppCompatActivity {
             return R.string.difficulty_medium;
         }
         return switch (difficulty) {
-            case EASY -> R.string.difficulty_easy;
-            case HARD -> R.string.difficulty_hard;
-            default -> R.string.difficulty_medium;
+        case EASY -> R.string.difficulty_easy;
+        case HARD -> R.string.difficulty_hard;
+        default -> R.string.difficulty_medium;
         };
     }
 
@@ -197,8 +189,7 @@ public class MainActivity extends AppCompatActivity {
             params.setMargins(4, 4, 4, 4);
             button.setLayoutParams(params);
 
-            button.setBackgroundTintList(
-                    ContextCompat.getColorStateList(this, R.color.button_beige));
+            button.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.button_beige));
             button.setTextColor(ContextCompat.getColor(this, R.color.text_brown));
 
             binding.numberPad.addView(button);
@@ -211,8 +202,7 @@ public class MainActivity extends AppCompatActivity {
     private void setupActionButtons() {
         binding.undoButton.setOnClickListener(v -> {
             if (!viewModel.undoLastMove()) {
-                Toast.makeText(this, getString(R.string.no_moves_to_undo), Toast.LENGTH_SHORT)
-                        .show();
+                Toast.makeText(this, getString(R.string.no_moves_to_undo), Toast.LENGTH_SHORT).show();
             }
         });
         binding.newGameButton.setOnClickListener(v -> returnToHome());
@@ -240,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Initializes the Sudoku grid overlay by creating 81 TextViews.
-     * 
+     *
      * @param cellSize The calculated size for each cell.
      */
     private void initializeSudokuGridOverlay(int cellSize) {
@@ -283,8 +273,7 @@ public class MainActivity extends AppCompatActivity {
         // Observe board changes
         viewModel.getSudokuBoard().observe(this, board -> {
             if (board != null) {
-                binding.difficultyText
-                        .setText(getDifficultyStringRes(board.getCurrentDifficulty()));
+                binding.difficultyText.setText(getDifficultyStringRes(board.getCurrentDifficulty()));
                 updateGridUI(board);
             }
         });
@@ -308,8 +297,7 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getElapsedTimeInMillis().observe(this, timeInMillis -> {
             int minutes = (int) (timeInMillis / 60000);
             int seconds = (int) ((timeInMillis % 60000) / 1000);
-            binding.timerText
-                    .setText(String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds));
+            binding.timerText.setText(String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds));
         });
 
         // Observe error count
@@ -317,8 +305,7 @@ public class MainActivity extends AppCompatActivity {
                 count -> binding.errorText.setText(getString(R.string.errors_format, count)));
 
         // Observe score
-        viewModel.getScore().observe(this,
-                score -> binding.scoreText.setText(getString(R.string.score_format, score)));
+        viewModel.getScore().observe(this, score -> binding.scoreText.setText(getString(R.string.score_format, score)));
 
         // Observe game won state
         viewModel.isGameWon().observe(this, isWon -> {
@@ -356,7 +343,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Updates the entire TextView grid with values from the SudokuBoard.
-     * 
+     *
      * @param board The SudokuBoard with the current data.
      */
     @SuppressLint("SetTextI18n")
@@ -410,22 +397,19 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Shows a game over dialog.
-     * 
+     *
      * @param title The title of the dialog.
      * @param message The main message of the dialog.
      */
     private void showGameOverDialog(String title, String message) {
         int finalScore = Objects.requireNonNullElse(viewModel.getScore().getValue(), 0);
-        String fullMessage =
-                message + " " + getString(R.string.game_over_final_score_format, finalScore);
+        String fullMessage = message + " " + getString(R.string.game_over_final_score_format, finalScore);
 
         new AlertDialog.Builder(this).setTitle(title).setMessage(fullMessage)
-                .setPositiveButton(getString(R.string.new_game_button),
-                        (dialog, which) -> showNewGameDialog())
-                .setNegativeButton(getString(R.string.close_button),
-                        (dialog, which) -> dialog.dismiss())
+                .setPositiveButton(getString(R.string.new_game_button), (dialog, which) -> showNewGameDialog())
+                .setNegativeButton(getString(R.string.close_button), (dialog, which) -> dialog.dismiss())
                 .setCancelable(false) // Prevents closing with the back button until a choice is
-                                      // made
+                // made
                 .show();
     }
 }

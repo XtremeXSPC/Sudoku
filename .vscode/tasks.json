@@ -1,0 +1,277 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    //===------------------------ CORE BUILD TASKS ------------------------===//
+    {
+      "label": "Android: Build Debug",
+      "type": "shell",
+      "command": "make",
+      "args": ["build"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Android: Build Release",
+      "type": "shell",
+      "command": "make",
+      "args": ["build-release"],
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Android: Install",
+      "type": "shell",
+      "command": "make",
+      "args": ["install"],
+      "group": "none",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    //===------------------------ RUN & TEST TASKS ------------------------===//
+    {
+      "label": "Android: Run",
+      "type": "shell",
+      "command": "make",
+      "args": ["run"],
+      "group": "none",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Android: Dev (Build + Run)",
+      "type": "shell",
+      "command": "make",
+      "args": ["dev"],
+      "group": "none",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true
+      }
+    },
+    {
+      "label": "Android: Quick Run",
+      "type": "shell",
+      "command": "make",
+      "args": ["quick-run"],
+      "group": "none",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    //===-------------------- EMULATOR & DEVICE TASKS ---------------------===//
+    {
+      "label": "Android: Start Emulator",
+      "type": "shell",
+      "command": "make",
+      "args": ["emulator"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Android: Stop Emulator",
+      "type": "shell",
+      "command": "make",
+      "args": ["stop-emulator"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Android: List Devices",
+      "type": "shell",
+      "command": "make",
+      "args": ["devices"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Android: Run Tests",
+      "type": "shell",
+      "command": "make",
+      "args": ["test"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Android: Run Unit Tests",
+      "type": "shell",
+      "command": "make",
+      "args": ["test-unit"],
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Android: Run Instrumented Tests",
+      "type": "shell",
+      "command": "make",
+      "args": ["test-instrumented"],
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Android: Lint",
+      "type": "shell",
+      "command": "make",
+      "args": ["lint"],
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    //===---------------------- LOG MANAGEMENT TASKS ----------------------===//
+    {
+      "label": "Android: Show Logs",
+      "type": "shell",
+      "command": "make",
+      "args": ["log"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false
+      }
+    },
+    {
+      "label": "Android: Show Error Logs",
+      "type": "shell",
+      "command": "make",
+      "args": ["log-error"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false
+      }
+    },
+    {
+      "label": "Android: Show Crash Logs",
+      "type": "shell",
+      "command": "make",
+      "args": ["log-crash"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      }
+    },
+    {
+      "label": "Android: Clear Logs",
+      "type": "shell",
+      "command": "make",
+      "args": ["clear-log"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    //===------------------ CLEANUP & MAINTENANCE TASKS -------------------===//
+    {
+      "label": "Android: Clean",
+      "type": "shell",
+      "command": "make",
+      "args": ["clean"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Android: Deep Clean",
+      "type": "shell",
+      "command": "make",
+      "args": ["clean-all"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Android: Uninstall",
+      "type": "shell",
+      "command": "make",
+      "args": ["uninstall"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    //===--------------------- GRADLE SPECIFIC TASKS ----------------------===//
+    {
+      "label": "Gradle: Clean Build",
+      "type": "shell",
+      "command": "./gradlew",
+      "args": ["clean", "assembleDebug"],
+      "group": "build",
+      "problemMatcher": ["$gradle"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Gradle: Dependencies",
+      "type": "shell",
+      "command": "./gradlew",
+      "args": ["dependencies"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    }
+  ]
+}
