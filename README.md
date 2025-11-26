@@ -1,8 +1,8 @@
 # Sudoku - A classic Android game in Java
 
-![Java](https://img.shields.io/badge/language-Java-orange.svg)![Platform](https://img.shields.io/badge/platform-Android-green.svg)![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Java](https://img.shields.io/badge/language-Java-orange.svg) ![Platform](https://img.shields.io/badge/platform-Android-green.svg) ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-A clean, user-friendly, and (maybe in future) feature-rich Sudoku application for Android, built entirely in Java. This project showcases the implementation of a classic logic puzzle using modern Android development principles and Jetpack components. The focus is on robust architecture, state management, and a smooth user experience.
+An Android Sudoku app with a Compose-based difficulty selector (`HomeActivity`) that launches a Java + ViewBinding game screen (`MainActivity`). The game logic lives in an MVVM stack powered by `SudokuViewModel`, `LiveData`, and the `SudokuBoard` model, keeping the UI responsive while puzzles are generated on a background thread.
 
 ## Screenshots
 
@@ -12,67 +12,56 @@ A clean, user-friendly, and (maybe in future) feature-rich Sudoku application fo
 
 ## Features
 
-- **Dynamic puzzle generation**: A new, unique, and solvable Sudoku puzzle is generated every time you start a new game.
-- **Multiple difficulty levels**: Choose between Easy, Medium, and Hard to match your skill level.
-- **Interactive and responsive grid**: A custom-drawn grid with an intuitive interface for selecting cells and inputting numbers.
-- **Real-time move validation**: User inputs are instantly checked against the actual solution. Incorrect numbers are highlighted, providing immediate feedback.
-- **Error counter**: Keep track of your mistakes with a simple error counter.
-- **Dynamic scoring system**: Your score is calculated based on difficulty, time elapsed, and errors made.
-- **Game timer**: A running clock to track how long a puzzle takes to solve.
-- **Undo last move**: Made a mistake? Easily undo your last move.
-- **Game state persistence**: The current game state, including the board, selected cell, and timer, is saved and restored during configuration changes (like screen rotation).
+- **Fresh puzzles per game**: Generates solvable boards with a uniqueness check before play starts.
+- **Difficulty selector**: Easy, Medium, or Hard chosen on the Compose home screen.
+- **Real-time validation**: Highlights wrong entries immediately; per-move scoring and an error counter keep feedback clear.
+- **Timer and scoring**: Time-based bonus plus difficulty bonuses; score never drops below zero.
+- **Undo support**: Revert the latest user move while keeping score and error counters in sync.
+- **Config-change safe**: Board state, selection, timer, and counters survive rotations and process death via the ViewModel bundle.
 
-## Technical stack and architecture
+## Architecture in brief
 
-This project is built following modern Android architecture guidelines to ensure it is scalable, maintainable, and robust.
-
-- **Language**: **Java**
-- **Architecture**: **MVVM (Model-View-ViewModel)**
-  - **View**: The `MainActivity` is responsible for observing data and updating the UI. It delegates all logic to the ViewModel.
-  - **ViewModel**: `SudokuViewModel` holds and processes all UI-related data. It survives configuration changes, preventing data loss.
-  - **Model**: The `SudokuBoard` and `SudokuCell` classes represent the game's data and core logic, completely decoupled from the Android Framework.
-- **Android Jetpack Components**:
-  - **ViewModel**: To manage UI-related data in a lifecycle-conscious way.
-  - **LiveData**: To build data objects that notify views when the underlying database changes. Used for communication between the `ViewModel` and the `Activity`.
-  - **ViewBinding**: To safely and easily interact with views defined in XML layouts.
-- **UI**:
-  - **XML Layouts**: For defining the static UI structure.
-  - **Custom Views**: `SudokuGridView` is a custom-drawn view responsible for rendering the grid lines and block backgrounds efficiently.
-- **Asynchronous Operations**:
-  - A `Handler` is used within the `ViewModel` to manage the game timer without blocking the main thread.
+- **UI flow**: `HomeActivity` (Compose difficulty picker) ➜ `MainActivity` (ViewBinding screen + overlayed `TextView`s for numbers).
+- **Rendering**: `SudokuGridView` draws the grid; `HighlightOverlayView` draws selection/highlight layers.
+- **State + logic**: `SudokuViewModel` owns UI state with `LiveData`, delegates rules and move history to `SudokuBoard`/`SudokuCell`.
+- **Background work**: Puzzle generation runs on a single-thread executor; a `Handler` drives the in-app timer on the main thread.
+- Read the full breakdown in `docs/ARCHITECTURE.md`.
 
 ## Project structure
 
-The codebase is organized into logical packages to promote a clean separation of concerns.
-
-```tree
-com.example.sudoku
-│
-├── MainActivity.java           // Main UI Controller (View)
-├── SudokuGridView.java         // Custom View for the grid background and lines
-│
-├── viewmodel/
-│   └── SudokuViewModel.java    // The ViewModel (MVVM)
-│
-└── model/                      // (Implicit package for model classes)
-    ├── SudokuBoard.java        // Core game logic, state, and puzzle generation
-    └── SudokuCell.java         // Data class for a single cell on the board
+```
+app/src/main/java/com/example/sudoku
+├── HomeActivity.kt            # Compose launcher that passes the chosen difficulty to MainActivity
+├── MainActivity.java          # ViewBinding UI, observers, dialogs, keypad, highlight overlay hookup
+├── SudokuGridView.java        # Custom view that draws the 9x9 board background and grid lines
+├── HighlightOverlayView.java  # Selection, row/column, and block highlighting overlay
+├── SudokuBoard.java           # Core logic: puzzle generation, validation, scoring, move history
+├── SudokuCell.java            # Parcelable cell model (value, fixed flag, correctness, notes)
+└── viewmodel/SudokuViewModel.java  # LiveData state holder, timer, undo, and move handling
 ```
 
-## How to set up and run
+Resources live in `app/src/main/res`; Compose theme definitions are under `app/src/main/java/com/example/sudoku/ui/theme`.
 
-1. **Clone the repository**:
+## Getting started
 
-    ```bash
-    git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git
-    ```
+Prerequisites: Android Studio (Koala+ recommended), JDK 21, Android SDK 36; the app currently targets and requires Android 14 (minSdk 34).
 
-2. Open the project in **Android Studio**.
-3. Let Gradle sync and download the required dependencies.
-4. Build and run the app on an Android emulator or a physical device.
+1. Clone the repo: `git clone https://github.com/<your-username>/Basic_Sudoku.git`
+2. Open the project in Android Studio and let Gradle sync.
+3. Pick a device/emulator running Android 14+ and press Run, or build from the CLI with `./gradlew assembleDebug`.
+
+## Development and testing
+
+- Quick build: `./gradlew assembleDebug`
+- Unit/UI tests: none are present yet; add them under `app/src/test` or `app/src/androidTest` and run with `./gradlew test` or `./gradlew connectedAndroidTest`.
+- Code style: Kotlin uses the official style; Java follows standard Android conventions and lives alongside Compose code where needed.
+- More tips live in `docs/DEVELOPMENT.md`.
+
+## Documentation
+
+- `docs/ARCHITECTURE.md`: deeper dive into the UI flow, threading, scoring, and puzzle generation.
+- `docs/DEVELOPMENT.md`: environment setup, build commands, and guidelines for extending the app.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-
----
+This project is licensed under the MIT License - see the `LICENSE` file for details.

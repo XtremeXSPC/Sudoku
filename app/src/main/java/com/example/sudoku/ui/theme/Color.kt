@@ -9,3 +9,9 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
+// App Specific Colors
+val AppBackground = Color(0xFFFFF8E1)
+val TextBrown = Color(0xFF6D4C41)
+val ButtonBeige = Color(0xFFD7CCC8)
+val ButtonBorder = Color(0xFFA1887F)
