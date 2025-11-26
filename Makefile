@@ -32,7 +32,7 @@
 SDK_DIR       := $(HOME)/Library/Android/sdk
 AVD_NAME      := Pixel_8
 ADB           := $(SDK_DIR)/platform-tools/adb
-EMULATOR      := $(SDK_DIR)/emulator/emulator
+EMULATOR      := $(SDK_DIR)/emulator/emulator -gpu host
 PACKAGE_NAME  := com.example.sudoku
 MAIN_ACTIVITY := .HomeActivity
 APK_DEBUG     := app/build/outputs/apk/debug/app-debug.apk
@@ -52,7 +52,8 @@ COLOR_BLUE    := \033[34m
 .PHONY: help build build-release install install-release run dev quick-run \
         emulator emulator-cold emulator-wait stop-emulator devices \
         clean clean-all lint test test-unit test-instrumented \
-        log log-error log-crash clear-log uninstall version
+        log log-brief log-time log-error log-warn log-debug log-crash log-tag clear-log \
+        uninstall version apk-info
 
 # Default target
 .DEFAULT_GOAL := help
@@ -80,14 +81,19 @@ help:
 	@echo "$(COLOR_GREEN)Emulator Management:$(COLOR_RESET)"
 	@echo "  make emulator           - Start emulator in background"
 	@echo "  make emulator-cold      - Start emulator with cold boot"
-	@echo "  make emulator-wait      - Wait for emulator to fully boot (up to 2min)"
+	@echo "  make emulator-wait      - Wait for emulator to fully boot (up to 3min)"
 	@echo "  make stop-emulator      - Stop running emulator"
 	@echo "  make devices            - List connected devices"
 	@echo ""
-	@echo "$(COLOR_GREEN)Logging:$(COLOR_RESET)"
-	@echo "  make log                - Show app logs"
+	@echo "$(COLOR_GREEN)Logging (Android Studio style):$(COLOR_RESET)"
+	@echo "  make log                - Show app logs (threadtime format)"
+	@echo "  make log-brief          - Show compact logs"
+	@echo "  make log-time           - Show logs with timestamps"
 	@echo "  make log-error          - Show error logs only"
+	@echo "  make log-warn           - Show warning and error logs"
+	@echo "  make log-debug          - Show debug logs"
 	@echo "  make log-crash          - Show crash logs"
+	@echo "  make log-tag TAG=Name   - Filter logs by tag"
 	@echo "  make clear-log          - Clear logcat buffer"
 	@echo ""
 	@echo "$(COLOR_GREEN)Maintenance:$(COLOR_RESET)"
@@ -95,6 +101,7 @@ help:
 	@echo "  make clean-all          - Deep clean (includes .gradle cache)"
 	@echo "  make uninstall          - Uninstall app from device"
 	@echo "  make version            - Show version info"
+	@echo "  make apk-info           - Show APK details (size, permissions, activities)"
 
 # ============================================================================ #
 # Build the debug APK
@@ -113,20 +120,42 @@ build-release:
 # Install the APK to the connected device/emulator
 install: build
 	@echo "$(COLOR_BLUE)Installing APK...$(COLOR_RESET)"
-	@$(ADB) wait-for-device
-	@if $(ADB) devices | grep -q "device$$"; then \
-		$(ADB) install -r $(APK_DEBUG); \
-		echo "$(COLOR_GREEN)Installation complete$(COLOR_RESET)"; \
-	else \
+	@if ! $(ADB) devices 2>/dev/null | grep -q "device$$"; then \
 		echo "$(COLOR_YELLOW)No device connected. Start emulator with 'make emulator'$(COLOR_RESET)"; \
 		exit 1; \
 	fi
+	@echo "$(COLOR_BLUE)Ensuring device is fully ready...$(COLOR_RESET)"
+	@$(ADB) wait-for-device
+	@timeout=30; \
+	while [ $$timeout -gt 0 ]; do \
+		boot_status=$$($(ADB) shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n' | tr -d ' '); \
+		if [ "$$boot_status" = "1" ]; then \
+			break; \
+		fi; \
+		sleep 1; \
+		timeout=$$((timeout - 1)); \
+	done
+	@$(ADB) install -r $(APK_DEBUG)
+	@echo "$(COLOR_GREEN)Installation complete$(COLOR_RESET)"
 
 # Install release APK
 install-release: build-release
 	@echo "$(COLOR_BLUE)Installing release APK...$(COLOR_RESET)"
+	@if ! $(ADB) devices 2>/dev/null | grep -q "device$$"; then \
+		echo "$(COLOR_YELLOW)No device connected. Start emulator with 'make emulator'$(COLOR_RESET)"; \
+		exit 1; \
+	fi
 	@$(ADB) wait-for-device
-	$(ADB) install -r $(APK_RELEASE)
+	@timeout=30; \
+	while [ $$timeout -gt 0 ]; do \
+		boot_status=$$($(ADB) shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n' | tr -d ' '); \
+		if [ "$$boot_status" = "1" ]; then \
+			break; \
+		fi; \
+		sleep 1; \
+		timeout=$$((timeout - 1)); \
+	done
+	@$(ADB) install -r $(APK_RELEASE)
 	@echo "$(COLOR_GREEN)Installation complete$(COLOR_RESET)"
 
 # Build, install, and launch the app
@@ -155,7 +184,21 @@ quick-run:
 		exit 1; \
 	fi
 	@$(ADB) wait-for-device
-	@$(ADB) install -r $(APK_DEBUG) 2>/dev/null || true
+	@echo "$(COLOR_BLUE)Verifying boot completion...$(COLOR_RESET)"
+	@timeout=45; \
+	while [ $$timeout -gt 0 ]; do \
+		boot_status=$$($(ADB) shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n' | tr -d ' '); \
+		bootanim=$$($(ADB) shell getprop init.svc.bootanim 2>/dev/null | tr -d '\r\n' | tr -d ' '); \
+		if [ "$$boot_status" = "1" ] && [ "$$bootanim" = "stopped" ]; then \
+			break; \
+		fi; \
+		sleep 1; \
+		timeout=$$((timeout - 1)); \
+	done
+	@if [ $$timeout -eq 0 ]; then \
+		echo "$(COLOR_YELLOW)Warning: Device may not be fully booted yet$(COLOR_RESET)"; \
+	fi
+	@$(ADB) install -r $(APK_DEBUG) 2>/dev/null || $(ADB) install -r $(APK_DEBUG)
 	@$(ADB) shell am start -n $(PACKAGE_NAME)/$(MAIN_ACTIVITY)
 	@echo "$(COLOR_GREEN)App running$(COLOR_RESET)"
 
@@ -178,22 +221,35 @@ emulator-cold:
 
 # Wait for emulator to fully boot
 emulator-wait:
-	@echo "$(COLOR_BLUE)Waiting for emulator to boot...$(COLOR_RESET)"
-	@timeout=120; \
+	@echo "$(COLOR_BLUE)Waiting for emulator to boot completely...$(COLOR_RESET)"
+	@echo "$(COLOR_YELLOW)This may take 1-2 minutes on first boot$(COLOR_RESET)"
+	@timeout=180; \
+	counter=0; \
+	device_found=0; \
 	while [ $$timeout -gt 0 ]; do \
 		if $(ADB) devices 2>/dev/null | grep -q "device$$"; then \
-			boot_status=$$($(ADB) shell getprop sys.boot_completed 2>/dev/null | tr -d '\r'); \
-			if [ "$$boot_status" = "1" ]; then \
+			if [ $$device_found -eq 0 ]; then \
+				echo ""; \
+				echo "$(COLOR_GREEN)Device detected, waiting for complete boot...$(COLOR_RESET)"; \
+				device_found=1; \
+			fi; \
+			boot_status=$$($(ADB) shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n' | tr -d ' '); \
+			bootanim=$$($(ADB) shell getprop init.svc.bootanim 2>/dev/null | tr -d '\r\n' | tr -d ' '); \
+			if [ "$$boot_status" = "1" ] && [ "$$bootanim" = "stopped" ]; then \
 				echo "$(COLOR_GREEN)Emulator fully booted and ready!$(COLOR_RESET)"; \
+				sleep 2; \
 				exit 0; \
 			fi; \
 		fi; \
-		printf "."; \
-		sleep 2; \
-		timeout=$$((timeout - 2)); \
+		if [ $$((counter % 5)) -eq 0 ]; then \
+			printf "."; \
+		fi; \
+		sleep 1; \
+		timeout=$$((timeout - 1)); \
+		counter=$$((counter + 1)); \
 	done; \
 	echo ""; \
-	echo "$(COLOR_YELLOW)Timeout waiting for emulator. Check with 'make devices'$(COLOR_RESET)"; \
+	echo "$(COLOR_YELLOW)Timeout waiting for emulator (3 min). Check with 'make devices'$(COLOR_RESET)"; \
 	exit 1
 
 # Stop the emulator
@@ -233,25 +289,55 @@ test-instrumented:
 	@echo "$(COLOR_GREEN)Instrumented tests complete$(COLOR_RESET)"
 
 # ============================================================================ #
-# Show logs for the app
+# Show logs for the app (Android Studio style with colors and formatting)
 log:
 	@echo "$(COLOR_BLUE)Showing logs for $(PACKAGE_NAME)...$(COLOR_RESET)"
-	$(ADB) logcat | grep --color=always "$(PACKAGE_NAME)"
+	@echo "$(COLOR_YELLOW)Press Ctrl+C to stop$(COLOR_RESET)"
+	@$(ADB) logcat -v threadtime | grep --color=always -E "$(PACKAGE_NAME)|AndroidRuntime"
+
+# Show logs with brief format (more compact)
+log-brief:
+	@echo "$(COLOR_BLUE)Showing brief logs...$(COLOR_RESET)"
+	@$(ADB) logcat -v brief | grep --color=always "$(PACKAGE_NAME)"
+
+# Show logs with time format (Android Studio default)
+log-time:
+	@echo "$(COLOR_BLUE)Showing logs with timestamps...$(COLOR_RESET)"
+	@$(ADB) logcat -v time *:V | grep --color=always -E "$(PACKAGE_NAME)|AndroidRuntime"
 
 # Show error logs only
 log-error:
 	@echo "$(COLOR_BLUE)Showing error logs...$(COLOR_RESET)"
-	$(ADB) logcat *:E | grep --color=always "$(PACKAGE_NAME)"
+	@$(ADB) logcat -v threadtime *:E | grep --color=always -E "$(PACKAGE_NAME)|AndroidRuntime"
+
+# Show warning and error logs
+log-warn:
+	@echo "$(COLOR_BLUE)Showing warning and error logs...$(COLOR_RESET)"
+	@$(ADB) logcat -v threadtime *:W | grep --color=always -E "$(PACKAGE_NAME)|AndroidRuntime"
+
+# Show debug logs
+log-debug:
+	@echo "$(COLOR_BLUE)Showing debug logs...$(COLOR_RESET)"
+	@$(ADB) logcat -v threadtime *:D | grep --color=always "$(PACKAGE_NAME)"
 
 # Show crash logs
 log-crash:
 	@echo "$(COLOR_BLUE)Showing crash logs...$(COLOR_RESET)"
-	$(ADB) logcat -b crash
+	@$(ADB) logcat -b crash -v threadtime
+
+# Filter logs by tag
+log-tag:
+	@echo "$(COLOR_BLUE)Usage: make log-tag TAG=YourTag$(COLOR_RESET)"
+	@if [ -z "$(TAG)" ]; then \
+		echo "$(COLOR_YELLOW)Please specify TAG variable$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+	@$(ADB) logcat -v threadtime -s $(TAG):*
 
 # Clear logcat buffer
 clear-log:
 	@echo "$(COLOR_BLUE)Clearing log buffer...$(COLOR_RESET)"
-	$(ADB) logcat -c
+	@$(ADB) logcat -c
 	@echo "$(COLOR_GREEN)Log buffer cleared$(COLOR_RESET)"
 
 # ============================================================================ #
@@ -278,3 +364,28 @@ version:
 	@echo "$(COLOR_BOLD)Version Information:$(COLOR_RESET)"
 	@grep "versionName" app/build.gradle.kts | head -1
 	@grep "versionCode" app/build.gradle.kts | head -1
+
+# Show APK information (size, permissions, version)
+apk-info:
+	@echo "$(COLOR_BOLD)APK Information:$(COLOR_RESET)"
+	@if [ ! -f "$(APK_DEBUG)" ]; then \
+		echo "$(COLOR_YELLOW)APK not found. Run 'make build' first$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+	@echo ""
+	@echo "$(COLOR_GREEN)File:$(COLOR_RESET) $(APK_DEBUG)"
+	@du -h "$(APK_DEBUG)" | awk '{print "$(COLOR_GREEN)Size:$(COLOR_RESET) " $$1}'
+	@echo ""
+	@echo "$(COLOR_GREEN)Package Info:$(COLOR_RESET)"
+	@AAPT=$$(find "$(SDK_DIR)/build-tools" -name aapt -type f | sort -V | tail -1); \
+	if [ -n "$$AAPT" ]; then \
+		"$$AAPT" dump badging "$(APK_DEBUG)" | grep -E "package:|sdkVersion:|targetSdkVersion:|uses-permission:"; \
+	else \
+		echo "$(COLOR_YELLOW)aapt tool not found$(COLOR_RESET)"; \
+	fi
+	@echo ""
+	@echo "$(COLOR_GREEN)Activities:$(COLOR_RESET)"
+	@AAPT=$$(find "$(SDK_DIR)/build-tools" -name aapt -type f | sort -V | tail -1); \
+	if [ -n "$$AAPT" ]; then \
+		"$$AAPT" dump badging "$(APK_DEBUG)" | grep "launchable-activity"; \
+	fi

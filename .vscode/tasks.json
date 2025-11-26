@@ -167,10 +167,36 @@
     },
     //===---------------------- LOG MANAGEMENT TASKS ----------------------===//
     {
-      "label": "Android: Show Logs",
+      "label": "Android: Show Logs (ThreadTime)",
       "type": "shell",
       "command": "make",
       "args": ["log"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false
+      }
+    },
+    {
+      "label": "Android: Show Logs (Brief)",
+      "type": "shell",
+      "command": "make",
+      "args": ["log-brief"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false
+      }
+    },
+    {
+      "label": "Android: Show Logs (Time)",
+      "type": "shell",
+      "command": "make",
+      "args": ["log-time"],
       "isBackground": true,
       "problemMatcher": [],
       "presentation": {
@@ -184,6 +210,32 @@
       "type": "shell",
       "command": "make",
       "args": ["log-error"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false
+      }
+    },
+    {
+      "label": "Android: Show Warning Logs",
+      "type": "shell",
+      "command": "make",
+      "args": ["log-warn"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false
+      }
+    },
+    {
+      "label": "Android: Show Debug Logs",
+      "type": "shell",
+      "command": "make",
+      "args": ["log-debug"],
       "isBackground": true,
       "problemMatcher": [],
       "presentation": {
@@ -247,6 +299,28 @@
       "presentation": {
         "reveal": "always",
         "panel": "shared"
+      }
+    },
+    {
+      "label": "Android: Show Version",
+      "type": "shell",
+      "command": "make",
+      "args": ["version"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Android: Show APK Info",
+      "type": "shell",
+      "command": "make",
+      "args": ["apk-info"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
       }
     },
     //===--------------------- GRADLE SPECIFIC TASKS ----------------------===//
