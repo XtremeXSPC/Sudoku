@@ -23,6 +23,14 @@
   "java.import.gradle.wrapper.enabled": true,
   "java.compile.nullAnalysis.mode": "automatic",
   "java.saveActions.organizeImports": true,
+  "java.import.gradle.java.home": "/Users/lcs-dev/.sdkman/candidates/java/current",
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-21",
+      "path": "/Users/lcs-dev/.sdkman/candidates/java/current",
+      "default": true
+    }
+  ],
 
   //===-------------- Files and Search ---------------===//
   "files.exclude": {
