@@ -30,13 +30,15 @@
 
 # Configurable variables
 SDK_DIR       := $(HOME)/Library/Android/sdk
-AVD_NAME      := Pixel_8
 ADB           := $(SDK_DIR)/platform-tools/adb
+AVD_NAME      := Pixel_8
 EMULATOR      := $(SDK_DIR)/emulator/emulator -gpu host
-PACKAGE_NAME  := com.example.sudoku
-MAIN_ACTIVITY := .HomeActivity
 APK_DEBUG     := app/build/outputs/apk/debug/app-debug.apk
 APK_RELEASE   := app/build/outputs/apk/release/app-release.apk
+
+# Application-specific variables
+PACKAGE_NAME  := com.example.sudoku
+MAIN_ACTIVITY := .HomeActivity
 
 # Colors for output
 COLOR_RESET   := \033[0m
