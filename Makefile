@@ -53,7 +53,7 @@ COLOR_BLUE    := \033[34m
         emulator emulator-cold emulator-wait stop-emulator devices \
         clean clean-all lint test test-unit test-instrumented \
         log log-brief log-time log-error log-warn log-debug log-crash log-tag clear-log \
-        uninstall version apk-info
+        uninstall version apk-info debug
 
 # Default target
 .DEFAULT_GOAL := help
@@ -201,6 +201,30 @@ quick-run:
 	@$(ADB) install -r $(APK_DEBUG) 2>/dev/null || $(ADB) install -r $(APK_DEBUG)
 	@$(ADB) shell am start -n $(PACKAGE_NAME)/$(MAIN_ACTIVITY)
 	@echo "$(COLOR_GREEN)App running$(COLOR_RESET)"
+
+# Start the app with a JDWP debugger port forwarded to localhost:8700
+debug: build
+	@echo "$(COLOR_BOLD)$(COLOR_BLUE)Starting debug session...$(COLOR_RESET)"
+	@if ! $(ADB) devices 2>/dev/null | grep -q "device$$"; then \
+		echo "$(COLOR_YELLOW)No device detected. Starting emulator...$(COLOR_RESET)"; \
+		$(MAKE) --no-print-directory emulator; \
+		$(MAKE) --no-print-directory emulator-wait || exit 1; \
+	fi
+	@$(ADB) wait-for-device
+	@$(ADB) install -r $(APK_DEBUG) 2>/dev/null || $(ADB) install -r $(APK_DEBUG)
+	@echo "$(COLOR_BLUE)Launching app in debug mode (waiting for debugger)...$(COLOR_RESET)"
+	@$(ADB) shell am start -D -n $(PACKAGE_NAME)/$(MAIN_ACTIVITY)
+	@echo "$(COLOR_BLUE)Preparing JDWP forwarding...$(COLOR_RESET)"
+	@sleep 2
+	@pid=$$($(ADB) shell pidof $(PACKAGE_NAME) 2>/dev/null | tr -d '\r'); \
+	if [ -z "$$pid" ]; then \
+		echo "$(COLOR_YELLOW)Unable to find app PID; is the app installed and running?$(COLOR_RESET)"; \
+		exit 1; \
+	fi; \
+	$(ADB) forward --remove tcp:8700 2>/dev/null || true; \
+	$(ADB) forward tcp:8700 jdwp:$$pid; \
+	echo "$(COLOR_GREEN)JDWP forwarded: localhost:8700 -> pid $$pid$(COLOR_RESET)"; \
+	echo "$(COLOR_YELLOW)Attach the debugger in VS Code now (host localhost, port 8700)$(COLOR_RESET)"
 
 # ============================================================================ #
 # Start the emulator in the background (silent)

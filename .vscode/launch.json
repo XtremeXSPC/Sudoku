@@ -8,7 +8,7 @@
       "request": "attach",
       "hostName": "localhost",
       "port": 8700,
-      "preLaunchTask": "Android: Dev (Build + Run)",
+      "preLaunchTask": "Android: Debug (Start + Forward JDWP)",
       "postDebugTask": "Android: Show Logs"
     },
     {
@@ -29,7 +29,7 @@
     {
       "name": "Android: Build, Run & Debug",
       "configurations": ["Android: Debug App"],
-      "preLaunchTask": "Android: Dev (Build + Run)",
+      "preLaunchTask": "Android: Debug (Start + Forward JDWP)",
       "stopAll": true
     }
   ]

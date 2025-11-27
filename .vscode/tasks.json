@@ -68,6 +68,19 @@
       }
     },
     {
+      "label": "Android: Debug (Start + Forward JDWP)",
+      "type": "shell",
+      "command": "make",
+      "args": ["debug"],
+      "group": "none",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true
+      }
+    },
+    {
       "label": "Android: Quick Run",
       "type": "shell",
       "command": "make",
