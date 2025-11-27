@@ -25,7 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
 import com.example.sudoku.ui.theme.ButtonBeige
 import com.example.sudoku.ui.theme.ButtonBorder
 import com.example.sudoku.ui.theme.SudokuTheme
@@ -42,11 +41,10 @@ class HomeActivity : ComponentActivity() {
         setContent {
             SudokuTheme(dynamicColor = false) {
                 // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    DifficultyScreen { difficulty ->
-                        startGame(difficulty)
-                    }
-                }
+                Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                ) { DifficultyScreen { difficulty -> startGame(difficulty) } }
             }
         }
     }
@@ -61,48 +59,55 @@ class HomeActivity : ComponentActivity() {
 @Composable
 fun DifficultyScreen(onDifficultySelected: (SudokuBoard.Difficulty) -> Unit) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxSize().padding(32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Sudoku",
-            fontSize = 48.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextBrown,
-            modifier = Modifier.padding(bottom = 64.dp)
+                text = "Sudoku",
+                fontSize = 48.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextBrown,
+                modifier = Modifier.padding(bottom = 64.dp)
         )
 
-        DifficultyButton(text = "Facile", onClick = { onDifficultySelected(SudokuBoard.Difficulty.EASY) })
+        DifficultyButton(
+                text = "Facile",
+                onClick = { onDifficultySelected(SudokuBoard.Difficulty.EASY) }
+        )
         Spacer(modifier = Modifier.height(16.dp))
-        DifficultyButton(text = "Medio", onClick = { onDifficultySelected(SudokuBoard.Difficulty.MEDIUM) })
+        DifficultyButton(
+                text = "Medio",
+                onClick = { onDifficultySelected(SudokuBoard.Difficulty.MEDIUM) }
+        )
         Spacer(modifier = Modifier.height(16.dp))
-        DifficultyButton(text = "Difficile", onClick = { onDifficultySelected(SudokuBoard.Difficulty.HARD) })
+        DifficultyButton(
+                text = "Difficile",
+                onClick = { onDifficultySelected(SudokuBoard.Difficulty.HARD) }
+        )
     }
 }
 
 @Composable
 fun DifficultyButton(text: String, onClick: () -> Unit) {
     Button(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = ButtonBeige,
-            contentColor = TextBrown
-        ),
-        border = BorderStroke(1.dp, ButtonBorder),
-        shape = RoundedCornerShape(8.dp) // Or whatever shape looks best, default is usually rounded
-    ) {
-        Text(text = text)
-    }
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors =
+                    ButtonDefaults.buttonColors(
+                            containerColor = ButtonBeige,
+                            contentColor = TextBrown
+                    ),
+            border = BorderStroke(1.dp, ButtonBorder),
+            shape =
+                    RoundedCornerShape(
+                            8.dp
+                    ) // Or whatever shape looks best, default is usually rounded
+    ) { Text(text = text) }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DifficultyScreenPreview() {
-    SudokuTheme(dynamicColor = false) {
-        DifficultyScreen { /* Do nothing in preview */ }
-    }
+    SudokuTheme(dynamicColor = false) { DifficultyScreen { /* Do nothing in preview */} }
 }

@@ -6,8 +6,9 @@
       "type": "java",
       "name": "Android: Debug App",
       "request": "attach",
-      "hostName": "localhost",
+      "hostName": "127.0.0.1",
       "port": 8700,
+      "timeout": 60000,
       "preLaunchTask": "Android: Debug (Start + Forward JDWP)",
       "postDebugTask": "Android: Show Logs"
     },
@@ -15,8 +16,9 @@
       "type": "java",
       "name": "Android: Attach Debugger",
       "request": "attach",
-      "hostName": "localhost",
-      "port": 8700
+      "hostName": "127.0.0.1",
+      "port": 8700,
+      "timeout": 60000
     },
     {
       "type": "java",

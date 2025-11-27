@@ -193,6 +193,19 @@
       }
     },
     {
+      "label": "Android: Show Logs",
+      "type": "shell",
+      "command": "make",
+      "args": ["log"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      }
+    },
+    {
       "label": "Android: Show Logs (Brief)",
       "type": "shell",
       "command": "make",

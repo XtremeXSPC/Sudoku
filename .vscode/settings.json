@@ -16,11 +16,17 @@
   "editor.acceptSuggestionOnEnter": "on",
   "editor.suggestOnTriggerCharacters": true,
 
+  // Force inheritance of global theme customizations
+  "workbench.colorTheme": "Tokyo Night",
+
   //===------------- Java Configuration --------------===//
   "java.format.settings.url": ".vscode/java-formatter.xml",
   "java.configuration.updateBuildConfiguration": "automatic",
+
+  // Enable Gradle import - AGP 8.7.3 is compatible with Buildship
   "java.import.gradle.enabled": true,
   "java.import.gradle.wrapper.enabled": true,
+
   "java.compile.nullAnalysis.mode": "automatic",
   "java.saveActions.organizeImports": true,
   "java.import.gradle.java.home": "/Users/lcs-dev/.sdkman/candidates/java/current",
@@ -89,5 +95,14 @@
 
   //===-------------- XML Configuration ---------------===//
   "xml.validation.enabled": true,
-  "xml.validation.schema.enabled": "always"
+  "xml.validation.schema.enabled": "always",
+
+  //===------- Kotlin Language Server Configuration -------===//
+  "kotlin.languageServer.enabled": true,
+  "kotlin.compiler.jvm.target": "21",
+  "kotlin.linting.run": "onType",
+
+  //===------- Enable Semantic Highlighting for Android -------===//
+  "editor.semanticHighlighting.enabled": true,
+  "java.semanticHighlighting.enabled": true
 }

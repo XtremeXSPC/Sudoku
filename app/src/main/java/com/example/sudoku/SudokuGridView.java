@@ -25,7 +25,7 @@ public class SudokuGridView extends View {
     /**
      * Calculates cell size based on the view's width. In Kotlin this was a custom getter property. In Java, it's a private
      * method.
-     * 
+     *
      * @return The calculated size for a single cell.
      */
     private float getCellSize() {
@@ -83,7 +83,7 @@ public class SudokuGridView extends View {
 
     /**
      * The main drawing method. It first draws the background blocks, then the grid lines.
-     * 
+     *
      * @param canvas The canvas on which the background will be drawn.
      */
     @Override

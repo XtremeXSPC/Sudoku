@@ -47,7 +47,7 @@ public class SudokuCell implements Parcelable {
 
     /**
      * Returns the current value of the cell.
-     * 
+     *
      * @return The value of the cell (0 if empty).
      */
     public int getValue() {
@@ -56,7 +56,7 @@ public class SudokuCell implements Parcelable {
 
     /**
      * Sets the value of the cell.
-     * 
+     *
      * @param value The new value for the cell.
      */
     public void setValue(int value) {
@@ -65,7 +65,7 @@ public class SudokuCell implements Parcelable {
 
     /**
      * Checks if the cell is fixed (not modifiable by the user).
-     * 
+     *
      * @return {@code true} if the cell is fixed, {@code false} otherwise.
      */
     public boolean isFixed() {
@@ -74,7 +74,7 @@ public class SudokuCell implements Parcelable {
 
     /**
      * Sets the "fixed" state of the cell.
-     * 
+     *
      * @param fixed {@code true} to make the cell fixed, {@code false} otherwise.
      */
     public void setFixed(boolean fixed) {
@@ -83,7 +83,7 @@ public class SudokuCell implements Parcelable {
 
     /**
      * Checks if the current value of the cell is considered correct.
-     * 
+     *
      * @return {@code true} if the value is correct, {@code false} otherwise.
      */
     public boolean isCorrect() {
@@ -92,7 +92,7 @@ public class SudokuCell implements Parcelable {
 
     /**
      * Sets the correctness state of the cell.
-     * 
+     *
      * @param correct {@code true} if the value is correct, {@code false} otherwise.
      */
     public void setCorrect(boolean correct) {
@@ -101,7 +101,7 @@ public class SudokuCell implements Parcelable {
 
     /**
      * Returns the set of notes associated with this cell.
-     * 
+     *
      * @return A {@link Set} containing the notes.
      */
     public Set<Integer> getNotes() {
@@ -110,7 +110,7 @@ public class SudokuCell implements Parcelable {
 
     /**
      * Sets the set of notes for this cell.
-     * 
+     *
      * @param notes The new set of notes.
      */
     public void setNotes(Set<Integer> notes) {
@@ -121,7 +121,7 @@ public class SudokuCell implements Parcelable {
 
     /**
      * Adds a note to the cell, if the cell is not fixed and the note is a valid number (1-9).
-     * 
+     *
      * @param note The note to add.
      */
     public void addNote(int note) {
@@ -132,7 +132,7 @@ public class SudokuCell implements Parcelable {
 
     /**
      * Removes a specified note from the cell.
-     * 
+     *
      * @param note The note to remove.
      */
     public void removeNote(int note) {
@@ -187,7 +187,7 @@ public class SudokuCell implements Parcelable {
     public static final Creator<SudokuCell> CREATOR = new Creator<>() {
         /**
          * Creates a new instance of {@code SudokuCell}, populating it with data read from the Parcel.
-         * 
+         *
          * @param in The Parcel to read data from.
          * @return A new instance of {@code SudokuCell}.
          */
@@ -198,7 +198,7 @@ public class SudokuCell implements Parcelable {
 
         /**
          * Creates a new array of {@code SudokuCell}.
-         * 
+         *
          * @param size The size of the array to create.
          * @return An array of {@code SudokuCell}.
          */
@@ -210,7 +210,7 @@ public class SudokuCell implements Parcelable {
 
     /**
      * Describes the kinds of special objects contained in this Parcelable instance's marshaled representation.
-     * 
+     *
      * @return A bitmask indicating the set of special object types marshaled.
      */
     @Override
@@ -220,7 +220,7 @@ public class SudokuCell implements Parcelable {
 
     /**
      * Writes the current state of the object to a {@link Parcel}.
-     * 
+     *
      * @param dest The Parcel in which the object should be written.
      * @param flags Additional flags about how the object should be written. May be 0 or
      *        {@link Parcelable#PARCELABLE_WRITE_RETURN_VALUE}.

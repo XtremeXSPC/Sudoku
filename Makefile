@@ -44,6 +44,12 @@ COLOR_BOLD    := \033[1m
 COLOR_GREEN   := \033[32m
 COLOR_YELLOW  := \033[33m
 COLOR_BLUE    := \033[34m
+COLOR_RED     := \033[31m
+COLOR_MAGENTA := \033[35m
+COLOR_CYAN    := \033[36m
+NC            := $(COLOR_RESET)
+
+LOG_FILTER    := $(PACKAGE_NAME)|AndroidRuntime
 
 # ============================================================================ #
 # Principal Makefile Targets
@@ -222,7 +228,7 @@ debug: build
 		exit 1; \
 	fi; \
 	$(ADB) forward --remove tcp:8700 2>/dev/null || true; \
-	$(ADB) forward tcp:8700 jdwp:$$pid; \
+	$(ADB) forward tcp:8700 jdwp:$$pid >/dev/null; \
 	echo "$(COLOR_GREEN)JDWP forwarded: localhost:8700 -> pid $$pid$(COLOR_RESET)"; \
 	echo "$(COLOR_YELLOW)Attach the debugger in VS Code now (host localhost, port 8700)$(COLOR_RESET)"
 
@@ -317,32 +323,38 @@ test-instrumented:
 log:
 	@echo "$(COLOR_BLUE)Showing logs for $(PACKAGE_NAME)...$(COLOR_RESET)"
 	@echo "$(COLOR_YELLOW)Press Ctrl+C to stop$(COLOR_RESET)"
-	@$(ADB) logcat -v threadtime | grep --color=always -E "$(PACKAGE_NAME)|AndroidRuntime"
+	@$(ADB) logcat -v threadtime *:V | grep --color=never -E "$(LOG_FILTER)" | \
+	awk 'BEGIN{red="$(COLOR_RED)";yellow="$(COLOR_YELLOW)";green="$(COLOR_GREEN)";cyan="$(COLOR_CYAN)";magenta="$(COLOR_MAGENTA)";reset="$(COLOR_RESET)"}{lvl=$$5;gsub(/[^A-Z]/,"",lvl);color=reset;if(lvl=="E")color=red;else if(lvl=="W")color=yellow;else if(lvl=="I")color=green;else if(lvl=="D")color=cyan;else if(lvl=="V")color=magenta;print color $$0 reset; fflush(stdout);}'
 
 # Show logs with brief format (more compact)
 log-brief:
 	@echo "$(COLOR_BLUE)Showing brief logs...$(COLOR_RESET)"
-	@$(ADB) logcat -v brief | grep --color=always "$(PACKAGE_NAME)"
+	@$(ADB) logcat -v brief *:V | grep --color=never -E "$(LOG_FILTER)" | \
+	awk 'BEGIN{red="$(COLOR_RED)";yellow="$(COLOR_YELLOW)";green="$(COLOR_GREEN)";cyan="$(COLOR_CYAN)";magenta="$(COLOR_MAGENTA)";reset="$(COLOR_RESET)"}{lvl=substr($$1,1,1);color=reset;if(lvl=="E")color=red;else if(lvl=="W")color=yellow;else if(lvl=="I")color=green;else if(lvl=="D")color=cyan;else if(lvl=="V")color=magenta;print color $$0 reset; fflush(stdout);}'
 
 # Show logs with time format (Android Studio default)
 log-time:
 	@echo "$(COLOR_BLUE)Showing logs with timestamps...$(COLOR_RESET)"
-	@$(ADB) logcat -v time *:V | grep --color=always -E "$(PACKAGE_NAME)|AndroidRuntime"
+	@$(ADB) logcat -v time *:V | grep --color=never -E "$(LOG_FILTER)" | \
+	awk 'BEGIN{red="$(COLOR_RED)";yellow="$(COLOR_YELLOW)";green="$(COLOR_GREEN)";cyan="$(COLOR_CYAN)";magenta="$(COLOR_MAGENTA)";reset="$(COLOR_RESET)"}{lvl=$$5;gsub(/[^A-Z]/,"",lvl);color=reset;if(lvl=="E")color=red;else if(lvl=="W")color=yellow;else if(lvl=="I")color=green;else if(lvl=="D")color=cyan;else if(lvl=="V")color=magenta;print color $$0 reset; fflush(stdout);}'
 
 # Show error logs only
 log-error:
 	@echo "$(COLOR_BLUE)Showing error logs...$(COLOR_RESET)"
-	@$(ADB) logcat -v threadtime *:E | grep --color=always -E "$(PACKAGE_NAME)|AndroidRuntime"
+	@$(ADB) logcat -v threadtime *:E | grep --color=never -E "$(LOG_FILTER)" | \
+	awk 'BEGIN{red="$(COLOR_RED)";reset="$(COLOR_RESET)"}{print red $$0 reset; fflush(stdout);}'
 
 # Show warning and error logs
 log-warn:
 	@echo "$(COLOR_BLUE)Showing warning and error logs...$(COLOR_RESET)"
-	@$(ADB) logcat -v threadtime *:W | grep --color=always -E "$(PACKAGE_NAME)|AndroidRuntime"
+	@$(ADB) logcat -v threadtime *:W | grep --color=never -E "$(LOG_FILTER)" | \
+	awk 'BEGIN{red="$(COLOR_RED)";yellow="$(COLOR_YELLOW)";reset="$(COLOR_RESET)"}{lvl=$$5;gsub(/[^A-Z]/,"",lvl);color=reset;if(lvl=="E")color=red;else color=yellow;print color $$0 reset; fflush(stdout);}'
 
 # Show debug logs
 log-debug:
 	@echo "$(COLOR_BLUE)Showing debug logs...$(COLOR_RESET)"
-	@$(ADB) logcat -v threadtime *:D | grep --color=always "$(PACKAGE_NAME)"
+	@$(ADB) logcat -v threadtime *:D | grep --color=never -E "$(LOG_FILTER)" | \
+	awk 'BEGIN{cyan="$(COLOR_CYAN)";reset="$(COLOR_RESET)"}{print cyan $$0 reset; fflush(stdout);}'
 
 # Show crash logs
 log-crash:
