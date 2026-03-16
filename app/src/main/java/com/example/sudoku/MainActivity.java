@@ -114,6 +114,9 @@ public class MainActivity extends AppCompatActivity {
         persistCurrentGameIfNeeded();
     }
 
+    /**
+     * Maps a difficulty enum to the localized label shown in the UI.
+     */
     private int getDifficultyStringRes(SudokuBoard.Difficulty difficulty) {
         if (difficulty == null) {
             return R.string.difficulty_medium;
@@ -125,11 +128,17 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
+    /**
+     * Resolves the launch difficulty from the incoming intent, defaulting to medium.
+     */
     private SudokuBoard.Difficulty resolveLaunchDifficulty() {
         SudokuBoard.Difficulty difficulty = getIntent().getSerializableExtra(EXTRA_DIFFICULTY, SudokuBoard.Difficulty.class);
         return difficulty != null ? difficulty : SudokuBoard.Difficulty.MEDIUM;
     }
 
+    /**
+     * Restores an in-progress game when the launch intent explicitly requests it.
+     */
     private boolean restoreSavedGameIfRequested() {
         if (!getIntent().getBooleanExtra(EXTRA_RESUME_SAVED_GAME, false)) {
             return false;
@@ -191,6 +200,9 @@ public class MainActivity extends AppCompatActivity {
         binding.newGameButton.setOnClickListener(v -> showNewGameOptionsDialog());
     }
 
+    /**
+     * Navigates back to the home screen and prevents persisting this session on stop.
+     */
     private void returnToHome() {
         shouldPersistOnStop = false;
         SavedGameStore.clear(this);
@@ -200,6 +212,10 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
+    /**
+     * Creates the click-target text layer that sits above {@link SudokuGridView}.
+     * The background grid/highlight are drawn by custom views while this layer handles values and taps.
+     */
     private void initializeSudokuGridOverlay(int cellSize) {
         binding.sudokuGridOverlay.removeAllViews();
         for (int row = 0; row < 9; row++) {
@@ -231,6 +247,9 @@ public class MainActivity extends AppCompatActivity {
         refreshInteractiveControls();
     }
 
+    /**
+     * Subscribes UI widgets to ViewModel state changes.
+     */
     private void observeViewModel() {
         viewModel.getSudokuBoard().observe(this, board -> {
             if (board != null) {
@@ -297,6 +316,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Rebinds value/color/style for every cell label in the overlay grid.
+     */
     @SuppressLint("SetTextI18n")
     private void updateGridUI(SudokuBoard board) {
         for (int row = 0; row < 9; row++) {
@@ -324,6 +346,7 @@ public class MainActivity extends AppCompatActivity {
                     int newColor = ContextCompat.getColor(this, textColorRes);
                     int oldColor = cellView.getCurrentTextColor();
 
+                    // Animate only real color changes to avoid restarting animations every update.
                     if (oldColor != newColor) {
                         android.animation.ObjectAnimator.ofArgb(cellView, "textColor", oldColor, newColor)
                                 .setDuration(200)
@@ -338,6 +361,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Mirrors ViewModel selection into the highlight overlay.
+     */
     private void updateHighlightOverlay(Pair<Integer, Integer> selection) {
         float cellSize = (binding.sudokuContainer.getWidth() > 0) ? (float) binding.sudokuContainer.getWidth() / 9.0f : 0f;
         if (selection != null) {
@@ -347,6 +373,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Enables/disables gameplay controls based on generation state and current selection.
+     */
     private void refreshInteractiveControls() {
         boolean isGenerating = Boolean.TRUE.equals(viewModel.isGenerating().getValue());
         SudokuCell selectedEditableCell = getSelectedEditableCell();
@@ -365,6 +394,9 @@ public class MainActivity extends AppCompatActivity {
         updateControlState(binding.newGameButton, !isGenerating);
     }
 
+    /**
+     * Returns the currently selected editable cell, or {@code null} when no editable selection exists.
+     */
     private SudokuCell getSelectedEditableCell() {
         SudokuBoard board = viewModel.getSudokuBoard().getValue();
         Pair<Integer, Integer> selection = viewModel.getSelectedCell().getValue();
@@ -378,11 +410,17 @@ public class MainActivity extends AppCompatActivity {
         return cell;
     }
 
+    /**
+     * Returns the active game difficulty, falling back to launch intent when no board exists yet.
+     */
     private SudokuBoard.Difficulty getCurrentDifficulty() {
         SudokuBoard board = viewModel.getSudokuBoard().getValue();
         return board != null ? board.getCurrentDifficulty() : resolveLaunchDifficulty();
     }
 
+    /**
+     * Records a win once per completed game to avoid duplicate writes on repeated observers callbacks.
+     */
     private void recordWinStatsIfNeeded() {
         SudokuBoard board = viewModel.getSudokuBoard().getValue();
         if (board == null || !viewModel.markWinStatsRecordedIfNeeded()) {
@@ -393,6 +431,9 @@ public class MainActivity extends AppCompatActivity {
         GameStatsStore.recordWin(this, board.getCurrentDifficulty(), elapsedTimeInMillis, finalScore);
     }
 
+    /**
+     * Persists the current session when it is still resumable, otherwise clears stale saved-game payloads.
+     */
     private void persistCurrentGameIfNeeded() {
         if (!shouldPersistOnStop) {
             SavedGameStore.clear(this);
@@ -412,6 +453,9 @@ public class MainActivity extends AppCompatActivity {
         SavedGameStore.save(this, state.first, state.second);
     }
 
+    /**
+     * Shows restart/home options while preserving the current difficulty as the default restart target.
+     */
     private void showNewGameOptionsDialog() {
         String difficultyLabel = getString(getDifficultyStringRes(getCurrentDifficulty()));
         new MaterialAlertDialogBuilder(this).setTitle(getString(R.string.new_game_dialog_title))
@@ -426,6 +470,9 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    /**
+     * Shows the terminal game dialog for both win and lose states.
+     */
     private void showGameOverDialog(String title, String message) {
         int finalScore = Objects.requireNonNullElse(viewModel.getScore().getValue(), 0);
         String fullMessage = getString(R.string.game_over_message_with_score, message,
@@ -443,15 +490,24 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    /**
+     * Applies enabled state plus visual alpha feedback to interactive controls.
+     */
     private void updateControlState(@NonNull View view, boolean enabled) {
         view.setEnabled(enabled);
         view.animate().alpha(enabled ? 1f : 0.35f).setDuration(200).start();
     }
 
+    /**
+     * Converts density-independent pixels to device pixels.
+     */
     private int dpToPx(int dp) {
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics()));
     }
 
+    /**
+     * Converts pixels to scaled-sp units used for text sizing.
+     */
     private float pixelsToScaledSp(float pixels) {
         return pixels / getResources().getDisplayMetrics().density;
     }

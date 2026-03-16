@@ -22,6 +22,9 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+/**
+ * Gameplay-focused tests for {@link SudokuViewModel}.
+ */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 34)
 public class SudokuViewModelGameplayTest {
@@ -54,6 +57,9 @@ public class SudokuViewModelGameplayTest {
     @Rule
     public InstantTaskExecutorRule instantTaskExecutorRule = new InstantTaskExecutorRule();
 
+    /**
+     * Correct moves should award difficulty-specific points without ending the game early.
+     */
     @Test
     public void correctMove_awardsPointsByDifficultyWithoutTriggeringEndgame() throws Exception {
         assertScoreForCorrectMove(SudokuBoard.Difficulty.EASY, 10);
@@ -61,6 +67,9 @@ public class SudokuViewModelGameplayTest {
         assertScoreForCorrectMove(SudokuBoard.Difficulty.HARD, 20);
     }
 
+    /**
+     * Undo must restore board/score state but keep historical errors accounted for.
+     */
     @Test
     public void incorrectMoveAndUndo_restoresBoardButKeepsHistoricalErrorCount() throws Exception {
         SudokuViewModel viewModel = new SudokuViewModel();
@@ -79,6 +88,9 @@ public class SudokuViewModelGameplayTest {
         assertEquals(0, viewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
     }
 
+    /**
+     * Clearing an editable value should remove the number while preserving the existing score.
+     */
     @Test
     public void clearSelectedCell_clearsEditableValueWithoutChangingScore() throws Exception {
         SudokuViewModel viewModel = new SudokuViewModel();
@@ -96,6 +108,9 @@ public class SudokuViewModelGameplayTest {
         assertTrue(viewModel.getSudokuBoard().getValue().getCell(0, 0).isCorrect());
     }
 
+    /**
+     * When multiple generations are requested quickly, only the latest request may update state.
+     */
     @Test(timeout = 30000)
     public void startNewGameInQuickSuccession_keepsLatestDifficulty() throws Exception {
         SudokuViewModel viewModel = new SudokuViewModel();
@@ -120,6 +135,9 @@ public class SudokuViewModelGameplayTest {
         fail("Timed out waiting for the latest generated puzzle.");
     }
 
+    /**
+     * Generation failures should surface an error and keep the previous playable game intact.
+     */
     @Test(timeout = 10000)
     public void startNewGameFailure_keepsCurrentGameAndExposesError() throws Exception {
         SudokuBoard existingBoard = createBoardWithOpenCells(SudokuBoard.Difficulty.MEDIUM, new int[][] { { 0, 0 }, { 0, 1 } });
@@ -160,6 +178,9 @@ public class SudokuViewModelGameplayTest {
         assertFalse(Boolean.TRUE.equals(viewModel.isGameWon().getValue()));
     }
 
+    /**
+     * Builds a deterministic test board with selected editable cells.
+     */
     private SudokuBoard createBoardWithOpenCells(SudokuBoard.Difficulty difficulty, int[][] openCells) throws Exception {
         SudokuBoard board = new SudokuBoard();
         SudokuCell[][] cells = new SudokuCell[9][9];
@@ -178,6 +199,9 @@ public class SudokuViewModelGameplayTest {
         return board;
     }
 
+    /**
+     * Creates a deep copy of the fixture solution matrix.
+     */
     private int[][] copySolution() {
         int[][] copy = new int[9][9];
         for (int row = 0; row < 9; row++) {
@@ -186,6 +210,9 @@ public class SudokuViewModelGameplayTest {
         return copy;
     }
 
+    /**
+     * Creates a state bundle compatible with {@link SudokuViewModel#restoreState(SudokuBoard, Bundle)}.
+     */
     private Bundle createBundle(int selectedRow, int selectedCol, int score) {
         Bundle bundle = new Bundle();
         bundle.putInt(STATE_SELECTED_ROW, selectedRow);
@@ -203,12 +230,18 @@ public class SudokuViewModelGameplayTest {
         return bundle;
     }
 
+    /**
+     * Reflection helper used by tests to inject deterministic board internals.
+     */
     private void setField(Object target, String fieldName, Object value) throws Exception {
         Field field = target.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
         field.set(target, value);
     }
 
+    /**
+     * Test double that forces puzzle generation to fail in background execution.
+     */
     private static final class FailingGenerationSudokuViewModel extends SudokuViewModel {
         @Override
         protected SudokuBoard createBoardForGeneration() {

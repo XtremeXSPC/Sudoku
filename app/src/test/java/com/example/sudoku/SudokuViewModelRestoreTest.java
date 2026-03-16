@@ -23,6 +23,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Restore-flow regression tests for {@link SudokuViewModel}.
+ */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 34)
 public class SudokuViewModelRestoreTest {
@@ -55,6 +58,9 @@ public class SudokuViewModelRestoreTest {
     @Rule
     public InstantTaskExecutorRule instantTaskExecutorRule = new InstantTaskExecutorRule();
 
+    /**
+     * Persisted total errors must continue increasing after restore when new mistakes happen.
+     */
     @Test
     public void saveAndRestore_preservesTotalErrorsForFutureMoves() throws Exception {
         SudokuViewModel originalViewModel = new SudokuViewModel();
@@ -72,6 +78,9 @@ public class SudokuViewModelRestoreTest {
         assertEquals(Boolean.TRUE, restoredViewModel.isGameOverWithIncorrectBoard().getValue());
     }
 
+    /**
+     * Undo after restore must not erase historical error accounting.
+     */
     @Test
     public void saveAndRestore_undoPreservesHistoricalErrorCount() throws Exception {
         SudokuViewModel originalViewModel = new SudokuViewModel();
@@ -88,6 +97,9 @@ public class SudokuViewModelRestoreTest {
         assertEquals(0, restoredViewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
     }
 
+    /**
+     * Completion bonus must remain stable across save/restore and never be applied twice.
+     */
     @Test
     public void saveAndRestore_doesNotAwardCompletionBonusTwice() throws Exception {
         SudokuViewModel originalViewModel = new SudokuViewModel();
@@ -104,6 +116,9 @@ public class SudokuViewModelRestoreTest {
         assertEquals(Boolean.FALSE, restoredViewModel.isGameOverWithIncorrectBoard().getValue());
     }
 
+    /**
+     * Undoing the winning move after restore should remove the persisted completion bonus first.
+     */
     @Test
     public void undoAfterRestoredWin_removesCompletionBonusBeforeRevertingTheWinningMove() throws Exception {
         SudokuViewModel originalViewModel = new SudokuViewModel();
@@ -121,6 +136,9 @@ public class SudokuViewModelRestoreTest {
         assertEquals(0, restoredViewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
     }
 
+    /**
+     * Restored running timers must resume from saved elapsed time, not wall-clock gap while app was closed.
+     */
     @Test
     public void restoreState_restartsRunningTimerFromSavedElapsedTime() throws Exception {
         Bundle bundle = createBundle(0, 1, 0, 0, 0, false, false, false, false, 0);
@@ -144,6 +162,9 @@ public class SudokuViewModelRestoreTest {
         assertTrue(resumedElapsedTime < 50_000L);
     }
 
+    /**
+     * Builds a board with one historical error already committed and one open cell for the next move.
+     */
     private SudokuBoard createBoardWithOnePastErrorAndOneOpenCell() throws Exception {
         SudokuBoard board = new SudokuBoard();
         SudokuCell[][] cells = createFixedSolvedBoard();
@@ -155,6 +176,9 @@ public class SudokuViewModelRestoreTest {
         return board;
     }
 
+    /**
+     * Builds a solved board where the last winning move exists in move history.
+     */
     private SudokuBoard createWonBoardWithWinningMove() throws Exception {
         SudokuBoard board = new SudokuBoard();
         SudokuCell[][] cells = createFixedSolvedBoard();
@@ -165,6 +189,9 @@ public class SudokuViewModelRestoreTest {
         return board;
     }
 
+    /**
+     * Injects deterministic board internals for state-restore tests.
+     */
     private void configureBoard(SudokuBoard board, SudokuCell[][] cells) throws Exception {
         setField(board, "currentDifficulty", SudokuBoard.Difficulty.EASY);
         setField(board, "solutionBoard", copySolution());
@@ -172,6 +199,9 @@ public class SudokuViewModelRestoreTest {
         getMoveHistory(board).clear();
     }
 
+    /**
+     * Creates a fully fixed solved board fixture.
+     */
     private SudokuCell[][] createFixedSolvedBoard() {
         SudokuCell[][] cells = new SudokuCell[9][9];
         for (int row = 0; row < 9; row++) {
@@ -182,6 +212,9 @@ public class SudokuViewModelRestoreTest {
         return cells;
     }
 
+    /**
+     * Returns a defensive copy of the fixed solution matrix.
+     */
     private int[][] copySolution() {
         int[][] copy = new int[9][9];
         for (int row = 0; row < 9; row++) {
@@ -190,6 +223,9 @@ public class SudokuViewModelRestoreTest {
         return copy;
     }
 
+    /**
+     * Reflection helper to inspect and manipulate move history for deterministic restore scenarios.
+     */
     @SuppressWarnings("unchecked")
     private Stack<SudokuBoard.MoveRecord> getMoveHistory(SudokuBoard board) throws Exception {
         Field movesHistoryField = SudokuBoard.class.getDeclaredField("movesHistory");
@@ -197,12 +233,18 @@ public class SudokuViewModelRestoreTest {
         return (Stack<SudokuBoard.MoveRecord>) movesHistoryField.get(board);
     }
 
+    /**
+     * Reflection helper used to set private fields on board instances.
+     */
     private void setField(Object target, String fieldName, Object value) throws Exception {
         Field field = target.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
         field.set(target, value);
     }
 
+    /**
+     * Creates a bundle matching the ViewModel persisted-state contract.
+     */
     private Bundle createBundle(int selectedRow, int selectedCol, int errorCount, int totalErrors, int score,
             boolean isTimerRunning, boolean isGameWon, boolean isIncorrectBoard, boolean completionBonusApplied,
             int awardedCompletionBonus) {

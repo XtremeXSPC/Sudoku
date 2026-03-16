@@ -78,34 +78,58 @@ public class SudokuViewModel extends ViewModel {
         return _sudokuBoard;
     }
 
+    /**
+     * @return Currently selected cell coordinates, or {@code null} when nothing is selected.
+     */
     public LiveData<Pair<Integer, Integer>> getSelectedCell() {
         return _selectedCell;
     }
 
+    /**
+     * @return Elapsed gameplay time in milliseconds.
+     */
     public LiveData<Long> getElapsedTimeInMillis() {
         return _elapsedTimeInMillis;
     }
 
+    /**
+     * @return Historical error count for the current puzzle (not reduced by undo).
+     */
     public LiveData<Integer> getErrorCount() {
         return _errorCount;
     }
 
+    /**
+     * @return Current score including any completion bonus already applied.
+     */
     public LiveData<Integer> getScore() {
         return _score;
     }
 
+    /**
+     * @return Game-won flag observed by the UI.
+     */
     public LiveData<Boolean> isGameWon() {
         return _isGameWon;
     }
 
+    /**
+     * @return Flag indicating a full board that violates rules or solution correctness.
+     */
     public LiveData<Boolean> isGameOverWithIncorrectBoard() {
         return _isGameOverWithIncorrectBoard;
     }
 
+    /**
+     * @return Flag indicating background puzzle generation is in progress.
+     */
     public LiveData<Boolean> isGenerating() {
         return _isGenerating;
     }
 
+    /**
+     * @return Localized string resource ID for generation failures, or {@code null} when no error is pending.
+     */
     public LiveData<Integer> getGenerationErrorMessage() {
         return _generationErrorMessage;
     }
@@ -420,6 +444,9 @@ public class SudokuViewModel extends ViewModel {
         return new SudokuBoard();
     }
 
+    /**
+     * Starts the one-second timer loop only when not already active.
+     */
     private void startTimerIfNotRunning() {
         if (!isTimerRunning) {
             if (chronometerBase == 0L) {
@@ -447,6 +474,9 @@ public class SudokuViewModel extends ViewModel {
         }
     }
 
+    /**
+     * Stops timer updates while keeping the current elapsed snapshot.
+     */
     private void stopTimer() {
         isTimerRunning = false;
         if (timerRunnable != null) {
@@ -454,6 +484,9 @@ public class SudokuViewModel extends ViewModel {
         }
     }
 
+    /**
+     * Resets elapsed time and starts a fresh timer for a newly generated game.
+     */
     private void resetAndStartTimer() {
         stopTimer();
         _elapsedTimeInMillis.setValue(0L);
@@ -505,6 +538,9 @@ public class SudokuViewModel extends ViewModel {
         resetAndStartTimer();
     }
 
+    /**
+     * Clears transient gameplay state before publishing a newly generated board.
+     */
     private void resetForNewGameRequest() {
         _selectedCell.setValue(null);
         _elapsedTimeInMillis.setValue(0L);
@@ -519,6 +555,9 @@ public class SudokuViewModel extends ViewModel {
         chronometerBase = 0L;
     }
 
+    /**
+     * Removes a previously applied completion bonus so score deltas can be recomputed safely after edits/undo.
+     */
     private int removeCompletionBonusFromScoreIfApplied() {
         int currentScore = Objects.requireNonNullElse(_score.getValue(), 0);
         if (!completionBonusApplied) {
@@ -534,6 +573,9 @@ public class SudokuViewModel extends ViewModel {
         return currentScore;
     }
 
+    /**
+     * Computes a final completion bonus using elapsed time and difficulty multipliers.
+     */
     private int calculateCompletionBonus(SudokuBoard board, long timeInMillis) {
         long timeBonus = Math.max(0, 600 - (timeInMillis / 1000)); // Example bonus: 600 seconds base
 

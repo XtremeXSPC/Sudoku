@@ -16,37 +16,40 @@ import androidx.core.content.ContextCompat;
  */
 public class SudokuGridView extends View {
 
-    // Paint objects are now initialized via a helper method or directly.
     private final Paint paintThinLine;
     private final Paint paintThickLine;
     private final Paint paintBlockBackgroundLight;
     private final Paint paintBlockBackgroundDark;
 
     /**
-     * Calculates cell size based on the view's width. In Kotlin this was a custom getter property. In Java, it's a private
-     * method.
+     * Calculates the side length of one cell based on the measured width.
      *
-     * @return The calculated size for a single cell.
+     * @return The calculated size for a single cell, or {@code 0f} until layout is complete.
      */
     private float getCellSize() {
         return (getWidth() > 0) ? (float) getWidth() / 9.0f : 0f;
     }
 
-    // Constructors in Java. This replaces the @JvmOverloads constructor in Kotlin.
-    // It's standard practice to have these three constructors for a custom View.
+    /**
+     * Creates the view from code.
+     */
     public SudokuGridView(Context context) {
         this(context, null);
     }
 
+    /**
+     * Creates the view from XML inflation.
+     */
     public SudokuGridView(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
+    /**
+     * Main constructor used by Android inflation and style resolution.
+     */
     public SudokuGridView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
-        // Initialization code that was inside the Kotlin class body
-        // is now placed inside the constructor.
         paintThinLine = new Paint();
         paintThinLine.setStyle(Paint.Style.STROKE);
         paintThinLine.setStrokeWidth(2.0f); // Thinner line

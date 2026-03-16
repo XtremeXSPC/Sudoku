@@ -7,8 +7,14 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+/**
+ * Unit tests for {@link SudokuCell} value-object behavior.
+ */
 public class SudokuCellTest {
 
+    /**
+     * Notes are intentionally exposed as an immutable view to avoid external mutation of cell state.
+     */
     @Test
     public void getNotes_returnsUnmodifiableView() {
         SudokuCell cell = new SudokuCell();

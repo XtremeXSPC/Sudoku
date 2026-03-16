@@ -21,6 +21,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Unit tests for {@link SavedGameStore} persistence and key isolation behavior.
+ */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 34)
 public class SavedGameStoreTest {
@@ -39,6 +42,9 @@ public class SavedGameStoreTest {
 
     private final Context context = RuntimeEnvironment.getApplication();
 
+    /**
+     * Resets shared preferences touched by this suite.
+     */
     @Before
     @After
     public void clearStore() {
@@ -48,6 +54,9 @@ public class SavedGameStoreTest {
                 .apply();
     }
 
+    /**
+     * Saves and reloads a board plus ViewModel payload, including notes and correctness flags.
+     */
     @Test
     public void saveAndLoad_roundTripsBoardAndViewModelState() throws Exception {
         SudokuBoard board = createBoardWithNotesAndError();
@@ -71,6 +80,9 @@ public class SavedGameStoreTest {
         assertEquals(450, loadedGame.getViewModelState().getInt("score"));
     }
 
+    /**
+     * Verifies that explicit clear removes the saved game payload.
+     */
     @Test
     public void clear_removesSavedGame() throws Exception {
         SavedGameStore.save(context, createBoardWithNotesAndError(), new Bundle());
@@ -82,6 +94,9 @@ public class SavedGameStoreTest {
         assertNull(SavedGameStore.load(context));
     }
 
+    /**
+     * Verifies that {@link SavedGameStore#clear(Context)} does not wipe unrelated preference keys.
+     */
     @Test
     public void clear_preservesUnrelatedPreferencesEntries() throws Exception {
         context.getSharedPreferences("saved_game_preferences", Context.MODE_PRIVATE)

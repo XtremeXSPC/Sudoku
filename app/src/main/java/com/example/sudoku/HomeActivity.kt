@@ -94,6 +94,9 @@ class HomeActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Home screen content with difficulty selection, optional resume entry point and stats navigation.
+ */
 @Composable
 fun DifficultyScreen(
     hasSavedGame: Boolean,
@@ -191,6 +194,9 @@ fun DifficultyScreen(
     }
 }
 
+/**
+ * Large menu action used for resume and difficulty entries.
+ */
 @Composable
 fun MenuActionButton(
     title: String,
@@ -226,6 +232,9 @@ fun MenuActionButton(
     }
 }
 
+/**
+ * Secondary rounded action used for tertiary navigation options.
+ */
 @Composable
 fun PillActionButton(
     text: String,

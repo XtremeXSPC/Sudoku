@@ -17,6 +17,14 @@ public final class GameStatsStore {
     private GameStatsStore() {
     }
 
+    /**
+     * Records a completed game for the provided difficulty and updates best-time / best-score aggregates.
+     *
+     * @param context Android context used to access {@link SharedPreferences}.
+     * @param difficulty Difficulty of the puzzle that has just been completed.
+     * @param elapsedTimeInMillis Completion time in milliseconds.
+     * @param score Final score reached for the completed game.
+     */
     public static void recordWin(@NonNull Context context, @NonNull SudokuBoard.Difficulty difficulty, long elapsedTimeInMillis,
             int score) {
         SharedPreferences preferences = getPreferences(context);
@@ -36,6 +44,12 @@ public final class GameStatsStore {
         editor.apply();
     }
 
+    /**
+     * Loads the persisted statistics snapshot for all difficulties.
+     *
+     * @param context Android context used to access {@link SharedPreferences}.
+     * @return A full snapshot containing easy, medium and hard aggregates.
+     */
     @NonNull
     public static StatsSnapshot load(@NonNull Context context) {
         SharedPreferences preferences = getPreferences(context);
@@ -45,10 +59,20 @@ public final class GameStatsStore {
                 readDifficultyStats(preferences, SudokuBoard.Difficulty.HARD));
     }
 
+    /**
+     * Clears all persisted statistics managed by this store.
+     *
+     * @param context Android context used to access {@link SharedPreferences}.
+     */
     public static void clear(@NonNull Context context) {
         getPreferences(context).edit().clear().apply();
     }
 
+    /**
+     * Returns an in-memory empty snapshot where every metric is set to its sentinel value.
+     *
+     * @return A snapshot with zero wins and unavailable best metrics.
+     */
     @NonNull
     public static StatsSnapshot emptySnapshot() {
         DifficultyStats emptyStats = new DifficultyStats(0, -1L, -1);
@@ -89,6 +113,9 @@ public final class GameStatsStore {
         return difficulty.name().toLowerCase(Locale.US);
     }
 
+    /**
+     * Read-only container with aggregated statistics for every difficulty level.
+     */
     public static final class StatsSnapshot {
         private final DifficultyStats easyStats;
         private final DifficultyStats mediumStats;
@@ -101,6 +128,12 @@ public final class GameStatsStore {
             this.hardStats = hardStats;
         }
 
+        /**
+         * Returns statistics for one difficulty.
+         *
+         * @param difficulty Difficulty to query.
+         * @return Aggregated metrics for the requested difficulty.
+         */
         @NonNull
         public DifficultyStats getStats(@NonNull SudokuBoard.Difficulty difficulty) {
             return switch (difficulty) {
@@ -110,11 +143,19 @@ public final class GameStatsStore {
             };
         }
 
+        /**
+         * Indicates whether at least one game completion was recorded.
+         *
+         * @return {@code true} when any difficulty has one or more wins.
+         */
         public boolean hasAnyStats() {
             return easyStats.hasResults() || mediumStats.hasResults() || hardStats.hasResults();
         }
     }
 
+    /**
+     * Immutable aggregate for a single difficulty.
+     */
     public static final class DifficultyStats {
         private final int wins;
         private final long bestTimeInMillis;
@@ -126,18 +167,30 @@ public final class GameStatsStore {
             this.bestScore = bestScore;
         }
 
+        /**
+         * @return Total wins recorded for this difficulty.
+         */
         public int getWins() {
             return wins;
         }
 
+        /**
+         * @return Fastest completion time in milliseconds, or {@code -1} when unavailable.
+         */
         public long getBestTimeInMillis() {
             return bestTimeInMillis;
         }
 
+        /**
+         * @return Highest score for this difficulty, or {@code -1} when unavailable.
+         */
         public int getBestScore() {
             return bestScore;
         }
 
+        /**
+         * @return {@code true} when at least one result exists for this difficulty.
+         */
         public boolean hasResults() {
             return wins > 0;
         }

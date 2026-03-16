@@ -33,6 +33,9 @@ import com.example.sudoku.ui.theme.SectionEyebrow
 import com.example.sudoku.ui.theme.SudokuBackdrop
 import com.example.sudoku.ui.theme.SudokuTheme
 
+/**
+ * Compose activity that shows aggregated local player statistics.
+ */
 class StatsActivity : ComponentActivity() {
 
     private var statsSnapshot by mutableStateOf(GameStatsStore.emptySnapshot())
@@ -63,6 +66,9 @@ class StatsActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Stats dashboard with global overview and per-difficulty breakdown.
+ */
 @Composable
 fun StatsScreen(
     statsSnapshot: GameStatsStore.StatsSnapshot,
@@ -226,6 +232,9 @@ private fun formatBestTime(bestTimeInMillis: Long?, unavailableLabel: String): S
     return "%02d:%02d".format(minutes, seconds)
 }
 
+/**
+ * Aggregates cross-difficulty metrics used by the overview card.
+ */
 private fun buildStatsOverview(statsSnapshot: GameStatsStore.StatsSnapshot): StatsOverview {
     val statsByDifficulty = listOf(
         statsSnapshot.getStats(SudokuBoard.Difficulty.EASY),

@@ -22,6 +22,13 @@ public final class SavedGameStore {
     private SavedGameStore() {
     }
 
+    /**
+     * Persists both the logical board and the ViewModel bundle as Base64-encoded parcel payloads.
+     *
+     * @param context Android context used to access {@link SharedPreferences}.
+     * @param board Current board snapshot.
+     * @param viewModelState Serializable ViewModel state bundle.
+     */
     public static void save(@NonNull Context context, @NonNull SudokuBoard board, @NonNull Bundle viewModelState) {
         SharedPreferences preferences = getPreferences(context);
         preferences.edit()
@@ -30,11 +37,24 @@ public final class SavedGameStore {
                 .apply();
     }
 
+    /**
+     * Checks whether both required payloads are available in storage.
+     *
+     * @param context Android context used to access {@link SharedPreferences}.
+     * @return {@code true} when a complete saved game is present.
+     */
     public static boolean hasSavedGame(@NonNull Context context) {
         SharedPreferences preferences = getPreferences(context);
         return preferences.contains(KEY_BOARD) && preferences.contains(KEY_VIEW_MODEL_STATE);
     }
 
+    /**
+     * Loads a previously persisted game snapshot.
+     * Corrupted payloads are treated as stale data and cleared to avoid repeated crashes.
+     *
+     * @param context Android context used to access {@link SharedPreferences}.
+     * @return The saved game, or {@code null} if absent or invalid.
+     */
     @Nullable
     public static SavedGame load(@NonNull Context context) {
         SharedPreferences preferences = getPreferences(context);
@@ -49,11 +69,17 @@ public final class SavedGameStore {
             Bundle viewModelState = unmarshallBundle(encodedBundle);
             return new SavedGame(board, viewModelState);
         } catch (RuntimeException exception) {
+            // Any decoding/parcel failure means payloads are out of sync or stale.
             clear(context);
             return null;
         }
     }
 
+    /**
+     * Removes only the keys managed by this store, preserving unrelated preferences.
+     *
+     * @param context Android context used to access {@link SharedPreferences}.
+     */
     public static void clear(@NonNull Context context) {
         getPreferences(context).edit()
                 .remove(KEY_BOARD)
@@ -116,6 +142,9 @@ public final class SavedGameStore {
         }
     }
 
+    /**
+     * Immutable payload representing a persisted game.
+     */
     public static final class SavedGame {
         private final SudokuBoard board;
         private final Bundle viewModelState;
@@ -125,11 +154,17 @@ public final class SavedGameStore {
             this.viewModelState = viewModelState;
         }
 
+        /**
+         * @return Persisted board snapshot.
+         */
         @NonNull
         public SudokuBoard getBoard() {
             return board;
         }
 
+        /**
+         * @return Persisted ViewModel bundle.
+         */
         @NonNull
         public Bundle getViewModelState() {
             return viewModelState;

@@ -9,6 +9,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Behavioral tests for {@link SudokuBoard} editing, validation and generation contracts.
+ */
 public class SudokuBoardTest {
 
     private static final int[][] SOLUTION = new int[][] {
@@ -23,6 +26,9 @@ public class SudokuBoardTest {
             { 3, 4, 5, 2, 8, 6, 1, 7, 9 }
     };
 
+    /**
+     * Ensures undo restores both value and correctness metadata of the edited cell.
+     */
     @Test
     public void setCellValueAndUndo_restorePreviousValueAndCorrectness() throws Exception {
         SudokuBoard board = createBoardWithOpenCells(SudokuBoard.Difficulty.EASY, new int[][] { { 0, 0 } });
@@ -42,6 +48,9 @@ public class SudokuBoardTest {
         assertTrue(board.getCell(0, 0).isCorrect());
     }
 
+    /**
+     * Verifies rule-based validation catches duplicates independently from solution checks.
+     */
     @Test
     public void isCurrentBoardStateValidAccordingToRules_detectsDuplicates() throws Exception {
         SudokuBoard board = createBoardWithOpenCells(SudokuBoard.Difficulty.MEDIUM, new int[][] {});
@@ -53,6 +62,9 @@ public class SudokuBoardTest {
         assertFalse(board.isCurrentBoardStateValidAccordingToRules());
     }
 
+    /**
+     * Verifies generated puzzles match clue counts and remain rule-valid for each difficulty.
+     */
     @Test(timeout = 30000)
     public void generateNewPuzzle_createsExpectedNumberOfFixedAndEditableCells() throws Exception {
         for (SudokuBoard.Difficulty difficulty : SudokuBoard.Difficulty.values()) {

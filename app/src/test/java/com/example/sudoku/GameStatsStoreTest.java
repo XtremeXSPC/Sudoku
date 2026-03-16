@@ -13,18 +13,27 @@ import org.robolectric.annotation.Config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Unit tests for {@link GameStatsStore}.
+ */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 34)
 public class GameStatsStoreTest {
 
     private final Context context = RuntimeEnvironment.getApplication();
 
+    /**
+     * Ensures each test starts from a clean stats store.
+     */
     @Before
     @After
     public void clearStore() {
         GameStatsStore.clear(context);
     }
 
+    /**
+     * Verifies that wins, best time and best score are tracked independently per difficulty.
+     */
     @Test
     public void recordWin_updatesWinsBestTimeAndBestScorePerDifficulty() {
         GameStatsStore.recordWin(context, SudokuBoard.Difficulty.EASY, 300_000L, 1200);
