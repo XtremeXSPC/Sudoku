@@ -5,6 +5,7 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -105,7 +106,7 @@ public class SudokuCell implements Parcelable {
      * @return A {@link Set} containing the notes.
      */
     public Set<Integer> getNotes() {
-        return notes;
+        return Collections.unmodifiableSet(notes);
     }
 
     /**

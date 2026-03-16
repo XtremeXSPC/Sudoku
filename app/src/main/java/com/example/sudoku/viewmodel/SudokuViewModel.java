@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.sudoku.R;
 import com.example.sudoku.SudokuBoard;
 import com.example.sudoku.SudokuCell;
 
@@ -49,6 +50,7 @@ public class SudokuViewModel extends ViewModel {
     private final MutableLiveData<Boolean> _isGameWon = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _isGameOverWithIncorrectBoard = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _isGenerating = new MutableLiveData<>(false);
+    private final MutableLiveData<Integer> _generationErrorMessage = new MutableLiveData<>();
     // Tracks cumulative mistakes committed in the current game. Undo restores the board state,
     // but it does not erase mistakes that were already made.
     private int totalErrorsThisGame = 0;
@@ -104,6 +106,10 @@ public class SudokuViewModel extends ViewModel {
         return _isGenerating;
     }
 
+    public LiveData<Integer> getGenerationErrorMessage() {
+        return _generationErrorMessage;
+    }
+
     /**
      * Constructor for the ViewModel. Corresponds to the `init` block in Kotlin. It starts a new game upon
      * creation.
@@ -124,11 +130,16 @@ public class SudokuViewModel extends ViewModel {
         }
 
         int requestId = ++generationRequestId;
-        resetForNewGameRequest();
+        boolean shouldResumeTimerAfterFailure = isTimerRunning
+                && _sudokuBoard.getValue() != null
+                && !Boolean.TRUE.equals(_isGameWon.getValue())
+                && !Boolean.TRUE.equals(_isGameOverWithIncorrectBoard.getValue());
+        stopTimer();
+        _generationErrorMessage.setValue(null);
         _isGenerating.setValue(true);
         generationTask = executor.submit(() -> {
             try {
-                SudokuBoard newBoard = new SudokuBoard();
+                SudokuBoard newBoard = createBoardForGeneration();
                 newBoard.generateNewPuzzle(difficulty);
 
                 // If the task was cancelled, don't update the UI.
@@ -141,16 +152,16 @@ public class SudokuViewModel extends ViewModel {
                     if (requestId != generationRequestId) {
                         return;
                     }
-                    _sudokuBoard.setValue(newBoard);
-                    _selectedCell.setValue(null);
-                    _isGenerating.setValue(false);
-                    resetAndStartTimer();
+                    finishNewGameGeneration(newBoard);
                 });
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 if (requestId == generationRequestId) {
                     mainHandler.post(() -> {
                         if (requestId == generationRequestId) {
+                            if (shouldResumeTimerAfterFailure) {
+                                startTimerIfNotRunning();
+                            }
                             _isGenerating.setValue(false);
                         }
                     });
@@ -159,7 +170,11 @@ public class SudokuViewModel extends ViewModel {
                 if (requestId == generationRequestId) {
                     mainHandler.post(() -> {
                         if (requestId == generationRequestId) {
+                            if (shouldResumeTimerAfterFailure) {
+                                startTimerIfNotRunning();
+                            }
                             _isGenerating.setValue(false);
+                            _generationErrorMessage.setValue(R.string.puzzle_generation_failed);
                         }
                     });
                 }
@@ -311,6 +326,10 @@ public class SudokuViewModel extends ViewModel {
         return true;
     }
 
+    public void clearGenerationErrorMessage() {
+        _generationErrorMessage.setValue(null);
+    }
+
     /**
      * Saves the current state of the ViewModel. Used for onSaveInstanceState in the Activity.
      *
@@ -359,9 +378,12 @@ public class SudokuViewModel extends ViewModel {
             _selectedCell.setValue(null);
         }
 
-        chronometerBase = bundleState.getLong(STATE_CHRONOMETER_BASE, SystemClock.elapsedRealtime());
-        isTimerRunning = bundleState.getBoolean(STATE_IS_TIMER_RUNNING, false);
-        _elapsedTimeInMillis.setValue(bundleState.getLong(STATE_ELAPSED_TIME_IN_MILLIS, 0L));
+        long restoredElapsedTime = bundleState.getLong(STATE_ELAPSED_TIME_IN_MILLIS, 0L);
+        _elapsedTimeInMillis.setValue(restoredElapsedTime);
+        // Resume from the elapsed time snapshot so reopening the app does not count time spent closed.
+        chronometerBase = SystemClock.elapsedRealtime() - restoredElapsedTime;
+        boolean shouldResumeTimer = bundleState.getBoolean(STATE_IS_TIMER_RUNNING, false);
+        isTimerRunning = false;
         totalErrorsThisGame = bundleState.getInt(STATE_TOTAL_ERRORS,
                 bundleState.getInt(STATE_ERROR_COUNT,
                         _sudokuBoard.getValue() != null ? _sudokuBoard.getValue().countUserErrors() : 0));
@@ -385,7 +407,7 @@ public class SudokuViewModel extends ViewModel {
         if (_sudokuBoard.getValue() != null && _sudokuBoard.getValue().isBoardFull()) {
             stopTimer();
             checkGameStatus();
-        } else if (isTimerRunning) {
+        } else if (shouldResumeTimer) {
             startTimerIfNotRunning();
         } else {
             stopTimer();
@@ -393,6 +415,10 @@ public class SudokuViewModel extends ViewModel {
     }
 
     /* ----- Private Helper Methods ----- */
+
+    protected SudokuBoard createBoardForGeneration() {
+        return new SudokuBoard();
+    }
 
     private void startTimerIfNotRunning() {
         if (!isTimerRunning) {
@@ -471,8 +497,15 @@ public class SudokuViewModel extends ViewModel {
         }
     }
 
+    private void finishNewGameGeneration(SudokuBoard newBoard) {
+        resetForNewGameRequest();
+        _sudokuBoard.setValue(newBoard);
+        _selectedCell.setValue(null);
+        _isGenerating.setValue(false);
+        resetAndStartTimer();
+    }
+
     private void resetForNewGameRequest() {
-        stopTimer();
         _selectedCell.setValue(null);
         _elapsedTimeInMillis.setValue(0L);
         _errorCount.setValue(0);

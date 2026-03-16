@@ -1,6 +1,7 @@
 package com.example.sudoku;
 
 import android.os.Bundle;
+import android.os.Looper;
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 import androidx.core.util.Pair;
@@ -11,10 +12,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 
 import java.lang.reflect.Field;
 import java.util.Stack;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -116,6 +119,29 @@ public class SudokuViewModelRestoreTest {
         assertEquals(Integer.valueOf(0), restoredViewModel.getScore().getValue());
         assertFalse(Boolean.TRUE.equals(restoredViewModel.isGameWon().getValue()));
         assertEquals(0, restoredViewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
+    }
+
+    @Test
+    public void restoreState_restartsRunningTimerFromSavedElapsedTime() throws Exception {
+        Bundle bundle = createBundle(0, 1, 0, 0, 0, false, false, false, false, 0);
+        bundle.putBoolean(STATE_IS_TIMER_RUNNING, true);
+        bundle.putLong(STATE_ELAPSED_TIME_IN_MILLIS, 42_000L);
+        bundle.putLong(STATE_CHRONOMETER_BASE, 1L);
+
+        // Simulate time passing while the app is closed. The restored timer should resume from
+        // the saved elapsed value instead of jumping ahead by this full gap.
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(5, TimeUnit.MINUTES);
+
+        SudokuViewModel restoredViewModel = new SudokuViewModel();
+        restoredViewModel.restoreState(createBoardWithOnePastErrorAndOneOpenCell(), bundle);
+
+        assertEquals(Long.valueOf(42_000L), restoredViewModel.getElapsedTimeInMillis().getValue());
+
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(2, TimeUnit.SECONDS);
+
+        long resumedElapsedTime = restoredViewModel.getElapsedTimeInMillis().getValue();
+        assertTrue(resumedElapsedTime >= 43_000L);
+        assertTrue(resumedElapsedTime < 50_000L);
     }
 
     private SudokuBoard createBoardWithOnePastErrorAndOneOpenCell() throws Exception {

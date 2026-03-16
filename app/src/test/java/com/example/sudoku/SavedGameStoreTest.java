@@ -42,7 +42,10 @@ public class SavedGameStoreTest {
     @Before
     @After
     public void clearStore() {
-        SavedGameStore.clear(context);
+        context.getSharedPreferences("saved_game_preferences", Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .apply();
     }
 
     @Test
@@ -77,6 +80,20 @@ public class SavedGameStoreTest {
 
         assertFalse(SavedGameStore.hasSavedGame(context));
         assertNull(SavedGameStore.load(context));
+    }
+
+    @Test
+    public void clear_preservesUnrelatedPreferencesEntries() throws Exception {
+        context.getSharedPreferences("saved_game_preferences", Context.MODE_PRIVATE)
+                .edit()
+                .putString("theme", "sepia")
+                .apply();
+        SavedGameStore.save(context, createBoardWithNotesAndError(), new Bundle());
+
+        SavedGameStore.clear(context);
+
+        assertEquals("sepia", context.getSharedPreferences("saved_game_preferences", Context.MODE_PRIVATE)
+                .getString("theme", null));
     }
 
     private SudokuBoard createBoardWithNotesAndError() throws Exception {

@@ -55,7 +55,10 @@ public final class SavedGameStore {
     }
 
     public static void clear(@NonNull Context context) {
-        getPreferences(context).edit().clear().apply();
+        getPreferences(context).edit()
+                .remove(KEY_BOARD)
+                .remove(KEY_VIEW_MODEL_STATE)
+                .apply();
     }
 
     @NonNull

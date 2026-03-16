@@ -94,12 +94,6 @@ public class MainActivity extends AppCompatActivity {
                         binding.sudokuContainer.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
                         initializeSudokuGridOverlay(binding.sudokuContainer.getWidth() / 9);
-
-                        // Force an initial UI update based on ViewModel data
-                        if (viewModel.getSudokuBoard().getValue() != null && cellTextViews[0][0] != null) {
-                            updateGridUI(viewModel.getSudokuBoard().getValue());
-                        }
-                        updateHighlightOverlay(viewModel.getSelectedCell().getValue());
                     }
                 });
     }
@@ -218,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
                 cellView.setHeight(cellSize);
                 cellView.setGravity(Gravity.CENTER);
                 cellView.setIncludeFontPadding(false);
-                cellView.setTextSize(TypedValue.COMPLEX_UNIT_PX, cellSize * 0.65f);
+                cellView.setTextSize(TypedValue.COMPLEX_UNIT_SP, pixelsToScaledSp(cellSize * 0.65f));
                 cellView.setTextColor(ContextCompat.getColor(this, R.color.onBackground));
                 cellView.setTypeface(Typeface.create(Typeface.SERIF, Typeface.NORMAL));
 
@@ -282,16 +276,24 @@ public class MainActivity extends AppCompatActivity {
         viewModel.isGenerating().observe(this, isGenerating -> {
             int visibility = (isGenerating != null && isGenerating) ? View.INVISIBLE : View.VISIBLE;
             int loadingVisibility = (isGenerating != null && isGenerating) ? View.VISIBLE : View.GONE;
-            
+
             binding.loadingStateContainer.setVisibility(loadingVisibility);
             binding.progressBar.setVisibility(loadingVisibility);
-            
+
             binding.sudokuGridView.setVisibility(visibility);
             binding.highlightOverlayView.setVisibility(visibility);
             binding.sudokuGridOverlay.setVisibility(visibility);
             binding.numberPad.setVisibility(visibility);
-            
+
             refreshInteractiveControls();
+        });
+
+        viewModel.getGenerationErrorMessage().observe(this, messageResId -> {
+            if (messageResId == null) {
+                return;
+            }
+            Toast.makeText(this, getString(messageResId), Toast.LENGTH_LONG).show();
+            viewModel.clearGenerationErrorMessage();
         });
     }
 
@@ -322,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
                     int newColor = ContextCompat.getColor(this, textColorRes);
                     int oldColor = cellView.getCurrentTextColor();
 
-                    if (oldColor != newColor && oldColor != ContextCompat.getColor(this, R.color.onBackground)) {
+                    if (oldColor != newColor) {
                         android.animation.ObjectAnimator.ofArgb(cellView, "textColor", oldColor, newColor)
                                 .setDuration(200)
                                 .start();
@@ -334,7 +336,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-        updateHighlightOverlay(viewModel.getSelectedCell().getValue());
     }
 
     private void updateHighlightOverlay(Pair<Integer, Integer> selection) {
@@ -449,5 +450,9 @@ public class MainActivity extends AppCompatActivity {
 
     private int dpToPx(int dp) {
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics()));
+    }
+
+    private float pixelsToScaledSp(float pixels) {
+        return pixels / getResources().getDisplayMetrics().density;
     }
 }

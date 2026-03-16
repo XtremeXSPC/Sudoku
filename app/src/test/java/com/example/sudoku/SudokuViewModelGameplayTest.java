@@ -18,6 +18,7 @@ import java.lang.reflect.Field;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -119,6 +120,34 @@ public class SudokuViewModelGameplayTest {
         fail("Timed out waiting for the latest generated puzzle.");
     }
 
+    @Test(timeout = 10000)
+    public void startNewGameFailure_keepsCurrentGameAndExposesError() throws Exception {
+        SudokuBoard existingBoard = createBoardWithOpenCells(SudokuBoard.Difficulty.MEDIUM, new int[][] { { 0, 0 }, { 0, 1 } });
+        SudokuViewModel viewModel = new FailingGenerationSudokuViewModel();
+        viewModel.restoreState(existingBoard, createBundle(0, 1, 35));
+
+        viewModel.startNewGame(SudokuBoard.Difficulty.HARD);
+
+        long deadline = System.currentTimeMillis() + 5000;
+        while (System.currentTimeMillis() < deadline) {
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            if (Boolean.FALSE.equals(viewModel.isGenerating().getValue())
+                    && viewModel.getGenerationErrorMessage().getValue() != null) {
+                assertSame(existingBoard, viewModel.getSudokuBoard().getValue());
+                assertEquals(Integer.valueOf(35), viewModel.getScore().getValue());
+                assertEquals(Integer.valueOf(R.string.puzzle_generation_failed), viewModel.getGenerationErrorMessage().getValue());
+                assertEquals(Integer.valueOf(0), viewModel.getSelectedCell().getValue().first);
+                assertEquals(Integer.valueOf(1), viewModel.getSelectedCell().getValue().second);
+                return;
+            }
+
+            Thread.sleep(25);
+        }
+
+        fail("Timed out waiting for the generation failure state.");
+    }
+
     private void assertScoreForCorrectMove(SudokuBoard.Difficulty difficulty, int expectedScore) throws Exception {
         SudokuViewModel viewModel = new SudokuViewModel();
         viewModel.restoreState(createBoardWithOpenCells(difficulty, new int[][] { { 0, 0 }, { 0, 1 } }),
@@ -178,5 +207,17 @@ public class SudokuViewModelGameplayTest {
         Field field = target.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
         field.set(target, value);
+    }
+
+    private static final class FailingGenerationSudokuViewModel extends SudokuViewModel {
+        @Override
+        protected SudokuBoard createBoardForGeneration() {
+            return new SudokuBoard() {
+                @Override
+                public void generateNewPuzzle(Difficulty difficulty) {
+                    throw new IllegalStateException("Synthetic generation failure");
+                }
+            };
+        }
     }
 }

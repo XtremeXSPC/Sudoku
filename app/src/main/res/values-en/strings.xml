@@ -16,6 +16,7 @@
     <string name="new_game_button">New Game</string>
     <string name="no_moves_to_undo">No moves to undo</string>
     <string name="nothing_to_clear">Nothing to clear</string>
+    <string name="puzzle_generation_failed">Could not generate a new puzzle. Please try again.</string>
     <string name="new_game_dialog_title">New game</string>
     <string name="new_game_same_difficulty_message">Do you want to restart on %1$s or go back home to choose another difficulty?</string>
     <string name="restart_button">Restart</string>

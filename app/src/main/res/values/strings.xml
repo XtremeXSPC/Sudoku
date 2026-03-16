@@ -28,6 +28,7 @@
     <string name="new_game_button">Nuova Partita</string>
     <string name="no_moves_to_undo">Nessuna mossa da annullare</string>
     <string name="nothing_to_clear">Niente da cancellare</string>
+    <string name="puzzle_generation_failed">Impossibile generare una nuova griglia. Riprova.</string>
 
     <string name="new_game_dialog_title">Nuova partita</string>
     <string name="new_game_same_difficulty_message">Vuoi ricominciare in modalità %1$s o tornare alla home per scegliere un’altra difficoltà?</string>
