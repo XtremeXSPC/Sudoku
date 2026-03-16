@@ -1,25 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App Specific Colors -->
-    <color name="status_bar_score_color">#008577</color>
-    <color name="status_bar_text_color">#856A5D</color>
+    <!-- Base Semantic Colors (Light Theme) -->
+    <color name="background">#F5F0EB</color>
+    <color name="onBackground">#1A1714</color>
+    
+    <color name="surface">#F5F0EB</color>
+    <color name="onSurface">#1A1714</color>
+    
+    <color name="surfaceVariant">#EBE5DF</color>
+    <color name="onSurfaceVariant">#4D4843</color>
 
-    <color name="background_cream">#FFF8E1</color> <!-- Main app background -->
-    <color name="text_brown">#6D4C41</color> <!-- Main text, fixed numbers -->
-    <color name="button_beige">#D7CCC8</color> <!-- Button background -->
+    <color name="primary">#C17A5A</color> <!-- Warm amber / dusty terracotta -->
+    <color name="onPrimary">#FFFFFF</color>
+    
+    <color name="secondary">#59747B</color> <!-- Muted teal / cool slate -->
+    <color name="onSecondary">#FFFFFF</color>
+    
+    <color name="error">#C85A5A</color> <!-- Soft red -->
+    <color name="onError">#FFFFFF</color>
+    <color name="errorContainer">#F9DFDF</color>
+    <color name="onErrorContainer">#3D1010</color>
+    
+    <color name="outline">#D1CBC5</color>
+    <color name="outlineVariant">#E2DDD8</color>
+    
+    <color name="success">#558957</color> <!-- Soft success green -->
+    <color name="successContainer">#DDF1DE</color>
 
-    <color name="cell_highlight_color">#B2DFDB</color> <!-- Selected cell highlighting -->
-    <color name="cell_background_dark_color">#E0E0E0</color> <!-- Dark background for 3x3 blocks (alternating) -->
-    <color name="cell_background_light_color">#F0F0F0</color> <!-- Light background for 3x3 blocks (alternating) -->
+    <!-- Specific UI Colors based on roles for the Grid -->
+    <color name="cell_background_light">@color/surface</color>
+    <color name="cell_background_dark">@color/surfaceVariant</color>
+    
+    <color name="grid_line_thin">#C9C1B8</color>
+    <color name="grid_line_thick">#9F9287</color>
 
-    <color name="accent_teal">#00796B</color> <!-- Numbers correctly entered by user -->
-    <color name="error_red">#D32F2F</color> <!-- Numbers incorrectly entered by user -->
-
-    <color name="grid_line_thin">#A1887F</color> <!-- Thin grid lines -->
-    <color name="grid_line_thick">#5D4037</color> <!-- Thick grid lines -->
-
-    <color name="highlight_row_col">#34FFD2B0</color>
-    <color name="highlight_block">#34FFD2B0</color>
-    <color name="highlight_selected_cell">#34DF9F81</color>
-
+    <!-- Selection & Highlights -->
+    <color name="highlight_selected_cell">#40C17A5A</color> <!-- 25% primary tint -->
+    <color name="highlight_row_col">#1AC17A5A</color> <!-- 10% primary tint for related cells -->
+    
+    <!-- Timer & Text -->
+    <color name="timer_text">@color/onSurfaceVariant</color>
 </resources>

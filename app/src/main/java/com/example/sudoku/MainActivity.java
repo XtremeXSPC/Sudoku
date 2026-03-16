@@ -2,6 +2,7 @@ package com.example.sudoku;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -13,7 +14,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sudoku.databinding.ActivityMainBinding;
 import com.example.sudoku.viewmodel.SudokuViewModel;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -59,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(SudokuViewModel.class);
 
         // Initialize the HighlightOverlayView.
-        highlightOverlayView = findViewById(R.id.highlightOverlayView);
+        highlightOverlayView = binding.highlightOverlayView;
 
         // State restoration logic.
         if (savedInstanceState == null) {
@@ -69,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
         } else {
-            // Restore state after process death. The ViewModel is newly created, so we need to restore its state.
+            // Restore state after process death.
             SudokuBoard boardState = savedInstanceState.getParcelable(KEY_SUDOKU_BOARD_STATE, SudokuBoard.class);
             Bundle viewModelBundle = savedInstanceState.getBundle(KEY_VIEW_MODEL_BUNDLE_STATE);
 
@@ -86,17 +87,15 @@ public class MainActivity extends AppCompatActivity {
         observeViewModel();
 
         // Use a ViewTreeObserver to create the grid TextViews once the container's size is known.
-        // In Java, we use an anonymous inner class for the listener.
         binding.sudokuContainer.getViewTreeObserver()
                 .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                     @Override
                     public void onGlobalLayout() {
-                        // It's crucial to remove the listener to prevent it from being called multiple times.
                         binding.sudokuContainer.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
                         initializeSudokuGridOverlay(binding.sudokuContainer.getWidth() / 9);
 
-                        // Force an initial UI update based on ViewModel data, especially useful after a rotation.
+                        // Force an initial UI update based on ViewModel data
                         if (viewModel.getSudokuBoard().getValue() != null && cellTextViews[0][0] != null) {
                             updateGridUI(viewModel.getSudokuBoard().getValue());
                         }
@@ -108,12 +107,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        // Get the state from the ViewModel.
         Pair<SudokuBoard, Bundle> state = viewModel.saveState();
-        if (state.first != null) {
+        if (state != null && state.first != null) {
             outState.putParcelable(KEY_SUDOKU_BOARD_STATE, state.first);
-        }
-        if (state.second != null) {
             outState.putBundle(KEY_VIEW_MODEL_BUNDLE_STATE, state.second);
         }
     }
@@ -124,21 +120,14 @@ public class MainActivity extends AppCompatActivity {
         persistCurrentGameIfNeeded();
     }
 
-    /**
-     * Maps a Difficulty enum to its corresponding user-friendly string resource ID.
-     *
-     * @param difficulty The difficulty level from the enum.
-     * @return The integer resource ID (e.g., R.string.difficulty_easy) for the difficulty string.
-     */
     private int getDifficultyStringRes(SudokuBoard.Difficulty difficulty) {
         if (difficulty == null) {
-            // Fallback in case difficulty is null
             return R.string.difficulty_medium;
         }
         return switch (difficulty) {
-        case EASY -> R.string.difficulty_easy;
-        case HARD -> R.string.difficulty_hard;
-        default -> R.string.difficulty_medium;
+            case EASY -> R.string.difficulty_easy;
+            case HARD -> R.string.difficulty_hard;
+            default -> R.string.difficulty_medium;
         };
     }
 
@@ -162,37 +151,38 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Initializes the number pad (buttons 1-9).
+     * Initializes the number pad with refined styling and margins.
      */
     private void setupNumberPad() {
+        int margin = dpToPx(4);
         for (int i = 1; i <= 9; i++) {
-            // The lambda onClickListener needs to capture the value of 'i'.
             final int numberToInput = i;
 
             Button button = new Button(this);
             button.setText(String.valueOf(i));
-            button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f);
+            button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f);
+            button.setTypeface(Typeface.create(Typeface.SERIF, Typeface.BOLD));
+            button.setTransformationMethod(null);
+            button.setPadding(0, dpToPx(8), 0, dpToPx(8));
             button.setOnClickListener(v -> viewModel.inputNumber(numberToInput));
 
             GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-            params.width = 0; // Set width to 0 to use weight
+            params.width = 0;
             params.height = GridLayout.LayoutParams.WRAP_CONTENT;
-            params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f); // Distribute equally
+            params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
             params.rowSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
-            params.setMargins(4, 4, 4, 4);
+            params.setMargins(margin, margin, margin, margin);
             button.setLayoutParams(params);
 
-            button.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.button_beige));
-            button.setTextColor(ContextCompat.getColor(this, R.color.text_brown));
+            button.setBackground(ContextCompat.getDrawable(this, R.drawable.bg_number_pad_button));
+            button.setTextColor(ContextCompat.getColor(this, R.color.onSurfaceVariant));
+            button.setElevation(dpToPx(2));
 
             binding.numberPad.addView(button);
             numberPadButtons[i - 1] = button;
         }
     }
 
-    /**
-     * Initializes the action buttons (Clear, Undo, New Game).
-     */
     private void setupActionButtons() {
         binding.clearButton.setOnClickListener(v -> {
             if (!viewModel.clearSelectedCell()) {
@@ -207,40 +197,19 @@ public class MainActivity extends AppCompatActivity {
         binding.newGameButton.setOnClickListener(v -> showNewGameOptionsDialog());
     }
 
-    /**
-     * Ends the current game session and returns to the HomeActivity to start a new one.
-     */
     private void returnToHome() {
         shouldPersistOnStop = false;
         SavedGameStore.clear(this);
-
-        // Create an Intent to return to HomeActivity.
         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-
-        // Add flags to the intent:
-        // FLAG_ACTIVITY_CLEAR_TOP: If HomeActivity is already in the stack, clear all activities above it.
-        // FLAG_ACTIVITY_SINGLE_TOP: Don't create a new instance of HomeActivity if it's already on top.
-        // Together, these flags ensure we return to the existing Home instance without messing up the navigation stack.
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
         startActivity(intent);
-
-        // Finish (destroy) the current MainActivity. This is essential to ensure that when the user presses "back" from the new
-        // game, they don't return to an old, finished game screen.
         finish();
     }
 
-    /**
-     * Initializes the Sudoku grid overlay by creating 81 TextViews.
-     *
-     * @param cellSize The calculated size for each cell.
-     */
     private void initializeSudokuGridOverlay(int cellSize) {
-        binding.sudokuGridOverlay.removeAllViews(); // Clear if already initialized (e.g., rotation)
+        binding.sudokuGridOverlay.removeAllViews();
         for (int row = 0; row < 9; row++) {
             for (int col = 0; col < 9; col++) {
-                // To use variables in a lambda, they must be 'effectively final'.
-                // So we create final copies for use in the onClickListener.
                 final int finalRow = row;
                 final int finalCol = col;
 
@@ -249,8 +218,9 @@ public class MainActivity extends AppCompatActivity {
                 cellView.setHeight(cellSize);
                 cellView.setGravity(Gravity.CENTER);
                 cellView.setIncludeFontPadding(false);
-                cellView.setTextSize(TypedValue.COMPLEX_UNIT_SP, (float) (cellSize / 4.0));
-                cellView.setTextColor(ContextCompat.getColor(this, R.color.text_brown));
+                cellView.setTextSize(TypedValue.COMPLEX_UNIT_PX, cellSize * 0.65f);
+                cellView.setTextColor(ContextCompat.getColor(this, R.color.onBackground));
+                cellView.setTypeface(Typeface.create(Typeface.SERIF, Typeface.NORMAL));
 
                 cellView.setOnClickListener(v -> viewModel.selectCell(finalRow, finalCol));
 
@@ -258,7 +228,6 @@ public class MainActivity extends AppCompatActivity {
                 cellTextViews[row][col] = cellView;
             }
         }
-        // After initialization, populate with the current data from the ViewModel.
         if (viewModel.getSudokuBoard().getValue() != null) {
             updateGridUI(viewModel.getSudokuBoard().getValue());
         }
@@ -268,11 +237,7 @@ public class MainActivity extends AppCompatActivity {
         refreshInteractiveControls();
     }
 
-    /**
-     * Sets up observers for the LiveData from the SudokuViewModel. Updates the UI whenever the data changes.
-     */
     private void observeViewModel() {
-        // Observe board changes
         viewModel.getSudokuBoard().observe(this, board -> {
             if (board != null) {
                 binding.difficultyText.setText(getDifficultyStringRes(board.getCurrentDifficulty()));
@@ -281,27 +246,22 @@ public class MainActivity extends AppCompatActivity {
             refreshInteractiveControls();
         });
 
-        // Observe cell selection changes
         viewModel.getSelectedCell().observe(this, selection -> {
             updateHighlightOverlay(selection);
             refreshInteractiveControls();
         });
 
-        // Observe timer
         viewModel.getElapsedTimeInMillis().observe(this, timeInMillis -> {
             int minutes = (int) (timeInMillis / 60000);
             int seconds = (int) ((timeInMillis % 60000) / 1000);
             binding.timerText.setText(String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds));
         });
 
-        // Observe error count
         viewModel.getErrorCount().observe(this,
                 count -> binding.errorText.setText(getString(R.string.errors_format, count)));
 
-        // Observe score
-        viewModel.getScore().observe(this, score -> binding.scoreText.setText(getString(R.string.score_format, score)));
+        viewModel.getScore().observe(this, score -> binding.scoreText.setText(String.valueOf(score)));
 
-        // Observe game won state
         viewModel.isGameWon().observe(this, isWon -> {
             if (isWon != null && isWon) {
                 recordWinStatsIfNeeded();
@@ -311,7 +271,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Observe game over state (incorrect board)
         viewModel.isGameOverWithIncorrectBoard().observe(this, isIncorrect -> {
             if (isIncorrect != null && isIncorrect) {
                 SavedGameStore.clear(this);
@@ -320,26 +279,22 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Observe puzzle generation state
         viewModel.isGenerating().observe(this, isGenerating -> {
-            if (isGenerating != null && isGenerating) {
-                binding.progressBar.setVisibility(View.VISIBLE);
-                binding.sudokuContainer.setVisibility(View.INVISIBLE);
-                binding.numberPad.setVisibility(View.INVISIBLE);
-            } else {
-                binding.progressBar.setVisibility(View.GONE);
-                binding.sudokuContainer.setVisibility(View.VISIBLE);
-                binding.numberPad.setVisibility(View.VISIBLE);
-            }
+            int visibility = (isGenerating != null && isGenerating) ? View.INVISIBLE : View.VISIBLE;
+            int loadingVisibility = (isGenerating != null && isGenerating) ? View.VISIBLE : View.GONE;
+            
+            binding.loadingStateContainer.setVisibility(loadingVisibility);
+            binding.progressBar.setVisibility(loadingVisibility);
+            
+            binding.sudokuGridView.setVisibility(visibility);
+            binding.highlightOverlayView.setVisibility(visibility);
+            binding.sudokuGridOverlay.setVisibility(visibility);
+            binding.numberPad.setVisibility(visibility);
+            
             refreshInteractiveControls();
         });
     }
 
-    /**
-     * Updates the entire TextView grid with values from the SudokuBoard.
-     *
-     * @param board The SudokuBoard with the current data.
-     */
     @SuppressLint("SetTextI18n")
     private void updateGridUI(SudokuBoard board) {
         for (int row = 0; row < 9; row++) {
@@ -353,22 +308,32 @@ public class MainActivity extends AppCompatActivity {
                         cellView.setText(Integer.toString(cell.getValue()));
                     }
 
-                    // Set text color based on cell state
                     int textColorRes;
                     if (cell.isFixed()) {
-                        textColorRes = R.color.text_brown;
+                        textColorRes = R.color.onBackground;
                     } else if (cell.getValue() == 0) {
-                        textColorRes = R.color.text_brown;
+                        textColorRes = R.color.onBackground;
                     } else if (cell.isCorrect()) {
-                        textColorRes = R.color.accent_teal;
+                        textColorRes = R.color.primary;
                     } else {
-                        textColorRes = R.color.error_red;
+                        textColorRes = R.color.error;
                     }
-                    cellView.setTextColor(ContextCompat.getColor(this, textColorRes));
+
+                    int newColor = ContextCompat.getColor(this, textColorRes);
+                    int oldColor = cellView.getCurrentTextColor();
+
+                    if (oldColor != newColor && oldColor != ContextCompat.getColor(this, R.color.onBackground)) {
+                        android.animation.ObjectAnimator.ofArgb(cellView, "textColor", oldColor, newColor)
+                                .setDuration(200)
+                                .start();
+                    } else {
+                        cellView.setTextColor(newColor);
+                    }
+
+                    cellView.setTypeface(Typeface.create(Typeface.SERIF, cell.isFixed() ? Typeface.BOLD : Typeface.NORMAL));
                 }
             }
         }
-        // Re-apply highlight on the selected cell, if any
         updateHighlightOverlay(viewModel.getSelectedCell().getValue());
     }
 
@@ -381,9 +346,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Refreshes keypad and action button states based on selection and loading state.
-     */
     private void refreshInteractiveControls() {
         boolean isGenerating = Boolean.TRUE.equals(viewModel.isGenerating().getValue());
         SudokuCell selectedEditableCell = getSelectedEditableCell();
@@ -393,13 +355,13 @@ public class MainActivity extends AppCompatActivity {
 
         for (Button button : numberPadButtons) {
             if (button != null) {
-                button.setEnabled(!isGenerating && hasEditableSelection);
+                updateControlState(button, !isGenerating && hasEditableSelection);
             }
         }
 
-        binding.clearButton.setEnabled(!isGenerating && canClear);
-        binding.undoButton.setEnabled(!isGenerating);
-        binding.newGameButton.setEnabled(!isGenerating);
+        updateControlState(binding.clearButton, !isGenerating && canClear);
+        updateControlState(binding.undoButton, !isGenerating);
+        updateControlState(binding.newGameButton, !isGenerating);
     }
 
     private SudokuCell getSelectedEditableCell() {
@@ -408,7 +370,6 @@ public class MainActivity extends AppCompatActivity {
         if (board == null || selection == null) {
             return null;
         }
-
         SudokuCell cell = board.getCell(selection.first, selection.second);
         if (cell == null || cell.isFixed()) {
             return null;
@@ -426,7 +387,6 @@ public class MainActivity extends AppCompatActivity {
         if (board == null || !viewModel.markWinStatsRecordedIfNeeded()) {
             return;
         }
-
         long elapsedTimeInMillis = Objects.requireNonNullElse(viewModel.getElapsedTimeInMillis().getValue(), 0L);
         int finalScore = Objects.requireNonNullElse(viewModel.getScore().getValue(), 0);
         GameStatsStore.recordWin(this, board.getCurrentDifficulty(), elapsedTimeInMillis, finalScore);
@@ -437,29 +397,23 @@ public class MainActivity extends AppCompatActivity {
             SavedGameStore.clear(this);
             return;
         }
-
         if (Boolean.TRUE.equals(viewModel.isGenerating().getValue())
                 || Boolean.TRUE.equals(viewModel.isGameWon().getValue())
                 || Boolean.TRUE.equals(viewModel.isGameOverWithIncorrectBoard().getValue())) {
             SavedGameStore.clear(this);
             return;
         }
-
         Pair<SudokuBoard, Bundle> state = viewModel.saveState();
-        if (state.first == null || state.second == null) {
+        if (state == null || state.first == null || state.second == null) {
             SavedGameStore.clear(this);
             return;
         }
-
         SavedGameStore.save(this, state.first, state.second);
     }
 
-    /**
-     * Shows the in-game dialog for restarting quickly or returning to the home difficulty picker.
-     */
     private void showNewGameOptionsDialog() {
         String difficultyLabel = getString(getDifficultyStringRes(getCurrentDifficulty()));
-        new AlertDialog.Builder(this).setTitle(getString(R.string.new_game_dialog_title))
+        new MaterialAlertDialogBuilder(this).setTitle(getString(R.string.new_game_dialog_title))
                 .setMessage(getString(R.string.new_game_same_difficulty_message, difficultyLabel))
                 .setPositiveButton(getString(R.string.restart_button),
                         (dialog, which) -> {
@@ -471,18 +425,12 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    /**
-     * Shows a game over dialog.
-     *
-     * @param title The title of the dialog.
-     * @param message The main message of the dialog.
-     */
     private void showGameOverDialog(String title, String message) {
         int finalScore = Objects.requireNonNullElse(viewModel.getScore().getValue(), 0);
         String fullMessage = getString(R.string.game_over_message_with_score, message,
                 getString(R.string.game_over_final_score_format, finalScore));
 
-        new AlertDialog.Builder(this).setTitle(title).setMessage(fullMessage)
+        new MaterialAlertDialogBuilder(this).setTitle(title).setMessage(fullMessage)
                 .setPositiveButton(getString(R.string.play_again_button),
                         (dialog, which) -> {
                             SavedGameStore.clear(this);
@@ -490,8 +438,16 @@ public class MainActivity extends AppCompatActivity {
                         })
                 .setNeutralButton(getString(R.string.back_to_home_button), (dialog, which) -> returnToHome())
                 .setNegativeButton(getString(R.string.close_button), (dialog, which) -> dialog.dismiss())
-                .setCancelable(false) // Prevents closing with the back button until a choice is
-                // made
+                .setCancelable(false)
                 .show();
+    }
+
+    private void updateControlState(@NonNull View view, boolean enabled) {
+        view.setEnabled(enabled);
+        view.animate().alpha(enabled ? 1f : 0.35f).setDuration(200).start();
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics()));
     }
 }

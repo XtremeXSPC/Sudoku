@@ -49,25 +49,27 @@ public class SudokuGridView extends View {
         // is now placed inside the constructor.
         paintThinLine = new Paint();
         paintThinLine.setStyle(Paint.Style.STROKE);
-        paintThinLine.setStrokeWidth(2f);
+        paintThinLine.setStrokeWidth(2.0f); // Thinner line
         paintThinLine.setAntiAlias(true);
         paintThinLine.setColor(ContextCompat.getColor(context, R.color.grid_line_thin));
 
         paintThickLine = new Paint();
         paintThickLine.setStyle(Paint.Style.STROKE);
-        paintThickLine.setStrokeWidth(5f);
+        paintThickLine.setStrokeWidth(4.5f); // Softer thick line for separation
         paintThickLine.setAntiAlias(true);
         paintThickLine.setColor(ContextCompat.getColor(context, R.color.grid_line_thick));
 
         paintBlockBackgroundLight = new Paint();
         paintBlockBackgroundLight.setStyle(Paint.Style.FILL);
+        paintBlockBackgroundLight.setAntiAlias(true);
         paintBlockBackgroundLight
-                .setColor(ContextCompat.getColor(context, R.color.cell_background_light_color));
+                .setColor(ContextCompat.getColor(context, R.color.cell_background_light));
 
         paintBlockBackgroundDark = new Paint();
         paintBlockBackgroundDark.setStyle(Paint.Style.FILL);
+        paintBlockBackgroundDark.setAntiAlias(true);
         paintBlockBackgroundDark
-                .setColor(ContextCompat.getColor(context, R.color.cell_background_dark_color));
+                .setColor(ContextCompat.getColor(context, R.color.cell_background_dark));
     }
 
 

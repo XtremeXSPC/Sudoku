@@ -1,23 +1,65 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme -->
     <style name="Base.Theme.Sudoku" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Primary and secondary colors customized for the Sudoku app -->
-        <item name="colorPrimary">@color/text_brown</item>
-        <item name="colorPrimaryVariant">@color/button_beige</item>
-        <item name="colorOnPrimary">@color/background_cream</item>
+        <!-- Main colors -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/onPrimary</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorOnSecondary">@color/onSecondary</item>
+        <item name="colorError">@color/error</item>
+        <item name="colorOnError">@color/onError</item>
+        <item name="colorErrorContainer">@color/errorContainer</item>
+        <item name="colorOnErrorContainer">@color/onErrorContainer</item>
 
-        <item name="colorSecondary">@color/accent_teal</item> <!-- Secondary/accent color -->
-        <item name="colorSecondaryVariant">@color/cell_highlight_color</item> <!-- Secondary variant -->
-        <item name="colorOnSecondary">@color/text_brown</item> <!-- Text over secondary color -->
-
-        <!-- Status bar color -->
-        <item name="android:statusBarColor">?attr/colorPrimary</item> <!-- or a specific color -->
-
-        <!-- Window background color -->
-        <item name="android:windowBackground">@color/background_cream</item>
-
-        <!-- Other theme customizations -->
+        <!-- Surfaces -->
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/onBackground</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/onSurface</item>
+        <item name="colorSurfaceVariant">@color/surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/onSurfaceVariant</item>
+        <item name="colorOutline">@color/outline</item>
+        <item name="colorOutlineVariant">@color/outlineVariant</item>
+        
+        <!-- System UI -->
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/background</item>
+        <item name="android:windowBackground">@color/background</item>
+        
+        <!-- Light status bar for light theme is usually needed for off-white -->
+        <!-- We will override this in values-night/themes.xml -->
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        
+        <!-- Typography -->
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Sudoku.Headline</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.Sudoku.Title</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.Sudoku.Body</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.Sudoku.Label</item>
     </style>
 
     <style name="Theme.Sudoku" parent="Base.Theme.Sudoku" />
+
+    <!-- Typography Styles -->
+    <style name="TextAppearance.Sudoku.Headline" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="fontFamily">@font/inter</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.Sudoku.Title" parent="TextAppearance.Material3.TitleLarge">
+        <item name="fontFamily">@font/inter</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.Sudoku.Body" parent="TextAppearance.Material3.BodyLarge">
+        <item name="fontFamily">@font/inter</item>
+        <item name="android:fontFamily">@font/inter</item>
+    </style>
+
+    <style name="TextAppearance.Sudoku.Label" parent="TextAppearance.Material3.LabelLarge">
+        <item name="fontFamily">@font/inter</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 </resources>

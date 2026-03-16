@@ -4,105 +4,120 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="8dp"
+    android:background="@drawable/bg_game_screen"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:paddingStart="16dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp"
     tools:context=".MainActivity">
 
     <TextView
         android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="16dp"
+        android:fontFamily="serif"
+        android:letterSpacing="0.05"
         android:text="@string/title_sudoku"
-        android:textColor="@color/text_brown"
-        android:textSize="28sp"
+        android:textColor="@color/onBackground"
+        android:textSize="32sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- =========== NUOVA STATUS BAR ============ -->
-    <!-- ========================================= -->
-
-
-    <!-- Contenitore Griglia (vincolato alla nuova status bar) -->
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/statusBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/bg_status_card"
+        android:elevation="4dp"
+        android:paddingStart="20dp"
+        android:paddingTop="14dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="14dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/titleText">
 
-        <!-- Elemento a Sinistra: Errori -->
-
-        <!-- Elemento Centrale: Punteggio e Difficoltà -->
         <TextView
             android:id="@+id/errorText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/status_bar_text_color"
-            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/error"
+            android:textSize="15sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="1.0"
             tools:text="Errori: 0" />
 
-        <TextView
-            android:id="@+id/scoreText"
+        <LinearLayout
+            android:id="@+id/scoreContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/status_bar_score_color"
-            android:textSize="20sp"
-            android:textStyle="bold"
+            android:gravity="center"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Punteggio: 0" />
+            app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/difficultyText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/status_bar_text_color"
-            android:textSize="14sp"
-            app:layout_constraintEnd_toEndOf="@id/scoreText"
-            app:layout_constraintStart_toStartOf="@id/scoreText"
-            app:layout_constraintTop_toBottomOf="@id/scoreText"
-            tools:text="Difficile" />
+            <TextView
+                android:id="@+id/scoreText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="serif"
+                android:letterSpacing="0.01"
+                android:textColor="@color/onSurface"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                tools:text="1250" />
 
-        <!-- Elemento a Destra: Timer -->
+            <TextView
+                android:id="@+id/difficultyText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.1"
+                android:textColor="@color/onSurfaceVariant"
+                android:textSize="11sp"
+                android:textAllCaps="true"
+                tools:text="Difficile" />
+        </LinearLayout>
+
         <TextView
             android:id="@+id/timerText"
             style="@style/StatsTextViewStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/status_bar_text_color"
-            android:textSize="16sp"
+            android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="1.0"
-            tools:text="@string/timer_default" />
+            tools:text="05:24" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <FrameLayout
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/sudokuContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="24dp"
+        app:cardBackgroundColor="@color/surface"
+        app:cardElevation="3dp"
+        app:cardCornerRadius="12dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="@color/outlineVariant"
+        app:layout_constraintBottom_toTopOf="@id/numberPad"
         app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintTop_toBottomOf="@id/statusBar"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/numberPad">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/statusBar">
 
         <com.example.sudoku.SudokuGridView
             android:id="@+id/sudokuGridView"
@@ -121,39 +136,58 @@
             android:columnCount="9"
             android:rowCount="9" />
 
-    </FrameLayout>
+        <LinearLayout
+            android:id="@+id/loadingStateContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_loading_plate"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingStart="24dp"
+            android:paddingTop="20dp"
+            android:paddingEnd="24dp"
+            android:paddingBottom="20dp"
+            android:visibility="gone"
+            tools:visibility="visible">
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/sudokuContainer"
-        app:layout_constraintEnd_toEndOf="@id/sudokuContainer"
-        app:layout_constraintStart_toStartOf="@id/sudokuContainer"
-        app:layout_constraintTop_toTopOf="@id/sudokuContainer"
-        tools:visibility="visible" />
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:visibility="gone"
+                tools:visibility="visible" />
 
-    <!-- Tastierino Numerico -->
+            <TextView
+                android:id="@+id/loadingText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/loading_puzzle"
+                android:textColor="@color/onBackground"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
     <GridLayout
         android:id="@+id/numberPad"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="20dp"
         android:columnCount="9"
         app:layout_constraintBottom_toTopOf="@id/clearButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
-    <!-- Pulsanti Azione -->
 
     <Button
         android:id="@+id/clearButton"
         style="@style/ActionButtonStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="6dp"
         android:text="@string/clear_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/undoButton"
@@ -164,7 +198,8 @@
         style="@style/ActionButtonStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="6dp"
         android:text="@string/undo_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/newGameButton"
@@ -172,14 +207,13 @@
 
     <Button
         android:id="@+id/newGameButton"
-        style="@style/ActionButtonStyle"
+        style="@style/ActionButtonStyle.Accent"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
+        android:layout_marginStart="6dp"
         android:text="@string/new_game_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/undoButton" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

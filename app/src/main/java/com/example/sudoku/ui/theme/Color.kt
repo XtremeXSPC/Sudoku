@@ -2,16 +2,30 @@ package com.example.sudoku.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Light Theme Colors
+val md_theme_light_background = Color(0xFFF5F0EB)
+val md_theme_light_onBackground = Color(0xFF1A1714)
+val md_theme_light_surface = Color(0xFFF5F0EB)
+val md_theme_light_onSurface = Color(0xFF1A1714)
+val md_theme_light_surfaceVariant = Color(0xFFEBE5DF)
+val md_theme_light_onSurfaceVariant = Color(0xFF4D4843)
+val md_theme_light_primary = Color(0xFFC17A5A)
+val md_theme_light_onPrimary = Color(0xFFFFFFFF)
+val md_theme_light_secondary = Color(0xFF59747B)
+val md_theme_light_onSecondary = Color(0xFFFFFFFF)
+val md_theme_light_outline = Color(0xFFD1CBC5)
+val md_theme_light_outlineVariant = Color(0xFFE2DDD8)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
-
-// App Specific Colors
-val AppBackground = Color(0xFFFFF8E1)
-val TextBrown = Color(0xFF6D4C41)
-val ButtonBeige = Color(0xFFD7CCC8)
-val ButtonBorder = Color(0xFFA1887F)
+// Dark Theme Colors
+val md_theme_dark_background = Color(0xFF1C1917)
+val md_theme_dark_onBackground = Color(0xFFF5F0EB)
+val md_theme_dark_surface = Color(0xFF292524)
+val md_theme_dark_onSurface = Color(0xFFF5F0EB)
+val md_theme_dark_surfaceVariant = Color(0xFF36302E)
+val md_theme_dark_onSurfaceVariant = Color(0xFFDCD5D1)
+val md_theme_dark_primary = Color(0xFFD18A6A)
+val md_theme_dark_onPrimary = Color(0xFF3E1B0D)
+val md_theme_dark_secondary = Color(0xFF7A9A9F)
+val md_theme_dark_onSecondary = Color(0xFF182B30)
+val md_theme_dark_outline = Color(0xFF5B5450)
+val md_theme_dark_outlineVariant = Color(0xFF4A4340)

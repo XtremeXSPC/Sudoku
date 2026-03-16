@@ -44,16 +44,19 @@ public class HighlightOverlayView extends View {
         highlightPaintRowCol = new Paint();
         highlightPaintRowCol.setColor(ContextCompat.getColor(context, R.color.highlight_row_col));
         highlightPaintRowCol.setStyle(Paint.Style.FILL);
+        highlightPaintRowCol.setAntiAlias(true);
 
         // Initialize paint for block highlighting
         highlightPaintBlock = new Paint();
-        highlightPaintBlock.setColor(ContextCompat.getColor(context, R.color.highlight_block));
+        highlightPaintBlock.setColor(ContextCompat.getColor(context, R.color.highlight_row_col));
         highlightPaintBlock.setStyle(Paint.Style.FILL);
+        highlightPaintBlock.setAntiAlias(true);
 
         // Initialize paint for the selected cell
         highlightPaintSelectedCell = new Paint();
         highlightPaintSelectedCell.setColor(ContextCompat.getColor(context, R.color.highlight_selected_cell));
         highlightPaintSelectedCell.setStyle(Paint.Style.FILL);
+        highlightPaintSelectedCell.setAntiAlias(true);
     }
 
     /**

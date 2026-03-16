@@ -3,8 +3,11 @@
     <string name="title_sudoku">Sudoku</string>
     <string name="home_choose_difficulty">Scegli la difficoltà</string>
     <string name="home_resume_game">Riprendi ultima partita</string>
+    <string name="home_resume_hint">Continua esattamente dal punto in cui avevi interrotto.</string>
     <string name="home_start_new_game">Oppure inizia una nuova partita</string>
     <string name="home_view_stats">Statistiche</string>
+    <string name="home_tagline">Logica classica, atmosfera rilassata.</string>
+    <string name="home_stats_hint">Consulta progressi, tempi e migliori punteggi.</string>
 
     <string name="score_format">Punteggio: %d</string>
 
@@ -13,8 +16,12 @@
     <string name="difficulty_easy">Facile</string>
     <string name="difficulty_medium">Medio</string>
     <string name="difficulty_hard">Difficile</string>
+    <string name="difficulty_easy_hint">Ritmo rilassato e griglia introduttiva.</string>
+    <string name="difficulty_medium_hint">Sfida equilibrata per una sessione completa.</string>
+    <string name="difficulty_hard_hint">Per chi vuole una partita davvero intensa.</string>
 
     <string name="timer_default">00:00</string>
+    <string name="loading_puzzle">Preparazione della griglia…</string>
 
     <string name="clear_button">Cancella</string>
     <string name="undo_button">Annulla</string>

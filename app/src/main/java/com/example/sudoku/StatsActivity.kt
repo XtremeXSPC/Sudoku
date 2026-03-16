@@ -3,21 +3,18 @@ package com.example.sudoku
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,12 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.sudoku.ui.theme.ButtonBeige
-import com.example.sudoku.ui.theme.ButtonBorder
+import com.example.sudoku.ui.theme.AppPanel
+import com.example.sudoku.ui.theme.SectionEyebrow
+import com.example.sudoku.ui.theme.SudokuBackdrop
 import com.example.sudoku.ui.theme.SudokuTheme
-import com.example.sudoku.ui.theme.TextBrown
 
 class StatsActivity : ComponentActivity() {
 
@@ -44,13 +42,11 @@ class StatsActivity : ComponentActivity() {
         refreshStats()
         setContent {
             SudokuTheme(dynamicColor = false) {
-                Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background
-                ) {
+                SudokuBackdrop {
                     StatsScreen(
-                            statsSnapshot = statsSnapshot,
-                            onBack = ::finish
+                        statsSnapshot = statsSnapshot,
+                        onBack = ::finish,
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
             }
@@ -69,151 +65,152 @@ class StatsActivity : ComponentActivity() {
 
 @Composable
 fun StatsScreen(
-        statsSnapshot: GameStatsStore.StatsSnapshot,
-        onBack: () -> Unit
+    statsSnapshot: GameStatsStore.StatsSnapshot,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val unavailableLabel = stringResource(R.string.stats_not_available)
     val overview = buildStatsOverview(statsSnapshot)
 
     Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(32.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp, vertical = 28.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-                text = stringResource(R.string.stats_title),
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextBrown
-        )
-        Text(
-                text = stringResource(R.string.stats_subtitle),
-                fontSize = 16.sp,
-                color = TextBrown
-        )
-
-        if (!statsSnapshot.hasAnyStats()) {
-            StatsCard {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 620.dp)
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                SectionEyebrow(text = stringResource(R.string.stats_title))
                 Text(
-                        text = stringResource(R.string.stats_empty),
-                        fontSize = 15.sp,
-                        color = TextBrown
+                    text = stringResource(R.string.stats_title),
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
-            }
-        } else {
-            StatsSectionTitle(text = stringResource(R.string.stats_overview_title))
-            StatsCard {
-                StatsValueRow(
-                        label = stringResource(R.string.stats_total_completed_label),
-                        value = pluralStringResource(R.plurals.stats_wins, overview.totalWins, overview.totalWins)
+                Text(
+                    text = stringResource(R.string.stats_subtitle),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                StatsValueRow(
-                        label = stringResource(R.string.stats_fastest_completion_label),
-                        value = formatBestTime(overview.fastestTimeInMillis, unavailableLabel)
-                )
-                StatsValueRow(
-                        label = stringResource(R.string.stats_best_score_label),
-                        value = overview.bestScore?.toString() ?: unavailableLabel
-                )
-            }
 
-            StatsSectionTitle(text = stringResource(R.string.stats_by_difficulty_title))
-            DifficultyStatsCard(
-                    label = stringResource(R.string.difficulty_easy),
-                    stats = statsSnapshot.getStats(SudokuBoard.Difficulty.EASY),
-                    unavailableLabel = unavailableLabel
-            )
-            DifficultyStatsCard(
-                    label = stringResource(R.string.difficulty_medium),
-                    stats = statsSnapshot.getStats(SudokuBoard.Difficulty.MEDIUM),
-                    unavailableLabel = unavailableLabel
-            )
-            DifficultyStatsCard(
-                    label = stringResource(R.string.difficulty_hard),
-                    stats = statsSnapshot.getStats(SudokuBoard.Difficulty.HARD),
-                    unavailableLabel = unavailableLabel
-            )
+                if (!statsSnapshot.hasAnyStats()) {
+                    AppPanel(modifier = Modifier.fillMaxWidth(), emphasized = true) {
+                        Text(
+                            text = stringResource(R.string.stats_empty),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Start
+                        )
+                    }
+                } else {
+                    AppPanel(modifier = Modifier.fillMaxWidth(), emphasized = true) {
+                        Text(
+                            text = stringResource(R.string.stats_overview_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        StatsMetricRow(
+                            label = stringResource(R.string.stats_total_completed_label),
+                            value = pluralStringResource(R.plurals.stats_wins, overview.totalWins, overview.totalWins),
+                            isUnavailable = false
+                        )
+                        StatsMetricRow(
+                            label = stringResource(R.string.stats_fastest_completion_label),
+                            value = formatBestTime(overview.fastestTimeInMillis, unavailableLabel),
+                            isUnavailable = overview.fastestTimeInMillis == null || overview.fastestTimeInMillis < 0
+                        )
+                        StatsMetricRow(
+                            label = stringResource(R.string.stats_best_score_label),
+                            value = overview.bestScore?.toString() ?: unavailableLabel,
+                            isUnavailable = overview.bestScore == null
+                        )
+                    }
+
+                    Text(
+                        text = stringResource(R.string.stats_by_difficulty_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+
+                    DifficultyStatsCard(
+                        label = stringResource(R.string.difficulty_easy),
+                        stats = statsSnapshot.getStats(SudokuBoard.Difficulty.EASY),
+                        unavailableLabel = unavailableLabel
+                    )
+                    DifficultyStatsCard(
+                        label = stringResource(R.string.difficulty_medium),
+                        stats = statsSnapshot.getStats(SudokuBoard.Difficulty.MEDIUM),
+                        unavailableLabel = unavailableLabel
+                    )
+                    DifficultyStatsCard(
+                        label = stringResource(R.string.difficulty_hard),
+                        stats = statsSnapshot.getStats(SudokuBoard.Difficulty.HARD),
+                        unavailableLabel = unavailableLabel
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+                PillActionButton(
+                    text = stringResource(R.string.back_to_home_button),
+                    onClick = onBack,
+                    emphasized = true
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-        PrimaryActionButton(
-                text = stringResource(R.string.back_to_home_button),
-                onClick = onBack
-        )
-    }
-}
-
-@Composable
-private fun StatsSectionTitle(text: String) {
-    Text(
-            text = text,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = TextBrown
-    )
-}
-
-@Composable
-private fun StatsCard(content: @Composable ColumnScope.() -> Unit) {
-    Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            color = ButtonBeige.copy(alpha = 0.28f),
-            border = BorderStroke(1.dp, ButtonBorder)
-    ) {
-        Column(
-                modifier = Modifier.fillMaxWidth().padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                content = content
-        )
     }
 }
 
 @Composable
 private fun DifficultyStatsCard(
-        label: String,
-        stats: GameStatsStore.DifficultyStats,
-        unavailableLabel: String
+    label: String,
+    stats: GameStatsStore.DifficultyStats,
+    unavailableLabel: String
 ) {
-    StatsCard {
-        Text(
-                text = label,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = TextBrown
+    AppPanel(modifier = Modifier.fillMaxWidth()) {
+        SectionEyebrow(text = label)
+        Spacer(modifier = Modifier.height(14.dp))
+        StatsMetricRow(
+            label = stringResource(R.string.stats_difficulty_wins_label),
+            value = pluralStringResource(R.plurals.stats_wins, stats.wins, stats.wins),
+            isUnavailable = false
         )
-        StatsValueRow(
-                label = stringResource(R.string.stats_difficulty_wins_label),
-                value = pluralStringResource(R.plurals.stats_wins, stats.wins, stats.wins)
+        StatsMetricRow(
+            label = stringResource(R.string.stats_difficulty_best_time_label),
+            value = formatBestTime(stats.bestTimeInMillis, unavailableLabel),
+            isUnavailable = stats.bestTimeInMillis == null || stats.bestTimeInMillis < 0
         )
-        StatsValueRow(
-                label = stringResource(R.string.stats_difficulty_best_time_label),
-                value = formatBestTime(stats.bestTimeInMillis, unavailableLabel)
-        )
-        StatsValueRow(
-                label = stringResource(R.string.stats_difficulty_best_score_label),
-                value = if (stats.bestScore >= 0) stats.bestScore.toString() else unavailableLabel
+        StatsMetricRow(
+            label = stringResource(R.string.stats_difficulty_best_score_label),
+            value = if (stats.bestScore >= 0) stats.bestScore.toString() else unavailableLabel,
+            isUnavailable = stats.bestScore < 0
         )
     }
 }
 
 @Composable
-private fun StatsValueRow(label: String, value: String) {
-    Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+private fun StatsMetricRow(label: String, value: String, isUnavailable: Boolean = false) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
     ) {
         Text(
-                text = label,
-                fontSize = 14.sp,
-                color = TextBrown,
-                modifier = Modifier.padding(end = 16.dp)
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        Spacer(modifier = Modifier.height(3.dp))
         Text(
-                text = value,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = TextBrown
+            text = value,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (isUnavailable || value == stringResource(R.string.stats_not_available)) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -231,29 +228,40 @@ private fun formatBestTime(bestTimeInMillis: Long?, unavailableLabel: String): S
 
 private fun buildStatsOverview(statsSnapshot: GameStatsStore.StatsSnapshot): StatsOverview {
     val statsByDifficulty = listOf(
-            statsSnapshot.getStats(SudokuBoard.Difficulty.EASY),
-            statsSnapshot.getStats(SudokuBoard.Difficulty.MEDIUM),
-            statsSnapshot.getStats(SudokuBoard.Difficulty.HARD)
+        statsSnapshot.getStats(SudokuBoard.Difficulty.EASY),
+        statsSnapshot.getStats(SudokuBoard.Difficulty.MEDIUM),
+        statsSnapshot.getStats(SudokuBoard.Difficulty.HARD)
     )
 
-    val bestScore = statsByDifficulty
-            .map { it.bestScore }
-            .filter { it >= 0 }
-            .maxOrNull()
-    val fastestTime = statsByDifficulty
-            .map { it.bestTimeInMillis }
-            .filter { it >= 0 }
-            .minOrNull()
+    var bestScoreTotal: Int? = null
+    var fastestTimeTotal: Long? = null
+    var totalWins = 0
+
+    for (stat in statsByDifficulty) {
+        totalWins += stat.wins
+        
+        if (stat.bestScore >= 0) {
+            if (bestScoreTotal == null || stat.bestScore > bestScoreTotal) {
+                bestScoreTotal = stat.bestScore
+            }
+        }
+        
+        if (stat.bestTimeInMillis >= 0) {
+            if (fastestTimeTotal == null || stat.bestTimeInMillis < fastestTimeTotal) {
+                fastestTimeTotal = stat.bestTimeInMillis
+            }
+        }
+    }
 
     return StatsOverview(
-            totalWins = statsByDifficulty.sumOf { it.wins },
-            bestScore = bestScore,
-            fastestTimeInMillis = fastestTime
+        totalWins = totalWins,
+        bestScore = bestScoreTotal,
+        fastestTimeInMillis = fastestTimeTotal
     )
 }
 
 private data class StatsOverview(
-        val totalWins: Int,
-        val bestScore: Int?,
-        val fastestTimeInMillis: Long?
+    val totalWins: Int,
+    val bestScore: Int?,
+    val fastestTimeInMillis: Long?
 )
