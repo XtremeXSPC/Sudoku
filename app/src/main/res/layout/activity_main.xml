@@ -122,16 +122,19 @@
             android:columnCount="9"
             android:rowCount="9" />
 
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
     </FrameLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/sudokuContainer"
+        app:layout_constraintEnd_toEndOf="@id/sudokuContainer"
+        app:layout_constraintStart_toStartOf="@id/sudokuContainer"
+        app:layout_constraintTop_toTopOf="@id/sudokuContainer"
+        tools:visibility="visible" />
 
     <!-- Tastierino Numerico -->
     <GridLayout

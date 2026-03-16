@@ -11,13 +11,13 @@
 - IDE: open the project in Android Studio, let Gradle sync, then press **Run** with an Android 14+ device selected.
 - CLI: run `./gradlew assembleDebug` to build; use `./gradlew installDebug` with a connected device/emulator to deploy.
 - The Compose launcher (`HomeActivity`) starts first; it forwards the selected difficulty to `MainActivity`.
+- If Gradle picks JDK 25 from your shell environment, force JDK 21 before running CLI tasks. On macOS, `export JAVA_HOME=$(/usr/libexec/java_home -v 21)` is the safest option.
 
 ## Testing
 
-- There are currently no unit or instrumented tests. Add them under:
-  - `app/src/test` for JVM/unit tests, run with `./gradlew test`.
-  - `app/src/androidTest` for device/emulator tests, run with `./gradlew connectedAndroidTest`.
-- For logic-heavy additions (e.g., puzzle generation tweaks), prefer JVM tests around `SudokuBoard` where possible.
+- JVM tests live under `app/src/test` and run with `./gradlew test`.
+- Instrumented/device tests live under `app/src/androidTest` and run with `./gradlew connectedAndroidTest`.
+- Current JVM coverage includes restore/endgame regressions around `SudokuViewModel`; logic-heavy additions should keep favoring local JVM tests where possible.
 
 ## Code style and patterns
 

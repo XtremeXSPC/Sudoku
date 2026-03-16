@@ -238,6 +238,9 @@ buildNumber.properties
 ### Windows ###
 # Windows thumbnail cache files
 Thumbs.db
+
+# Local planning docs
+plans/
 Thumbs.db:encryptable
 ehthumbs.db
 ehthumbs_vista.db

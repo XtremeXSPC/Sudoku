@@ -25,6 +25,19 @@ import java.util.concurrent.Future;
  */
 public class SudokuViewModel extends ViewModel {
 
+    private static final String STATE_SELECTED_ROW = "selectedRow";
+    private static final String STATE_SELECTED_COL = "selectedCol";
+    private static final String STATE_CHRONOMETER_BASE = "chronometerBase";
+    private static final String STATE_IS_TIMER_RUNNING = "isTimerRunning";
+    private static final String STATE_ELAPSED_TIME_IN_MILLIS = "elapsedTimeInMillis";
+    private static final String STATE_ERROR_COUNT = "errorCount";
+    private static final String STATE_TOTAL_ERRORS = "totalErrorsThisGame";
+    private static final String STATE_SCORE = "score";
+    private static final String STATE_IS_GAME_WON = "isGameWon";
+    private static final String STATE_IS_GAME_OVER_WITH_INCORRECT_BOARD = "isGameOverWithIncorrectBoard";
+    private static final String STATE_COMPLETION_BONUS_APPLIED = "completionBonusApplied";
+    private static final String STATE_AWARDED_COMPLETION_BONUS = "awardedCompletionBonus";
+
     /* ----- LiveData Fields ----- */
     // The private MutableLiveData can be changed only within this ViewModel.
     private final MutableLiveData<SudokuBoard> _sudokuBoard = new MutableLiveData<>();
@@ -36,8 +49,11 @@ public class SudokuViewModel extends ViewModel {
     private final MutableLiveData<Boolean> _isGameOverWithIncorrectBoard = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _isGenerating = new MutableLiveData<>(false);
     private int totalErrorsThisGame = 0;
+    private boolean completionBonusApplied = false;
+    private int awardedCompletionBonus = 0;
 
     /* ----- Timer related fields ----- */
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final Handler timerHandler = new Handler(Looper.getMainLooper());
     private Runnable timerRunnable;
     private long chronometerBase = 0L;
@@ -46,6 +62,7 @@ public class SudokuViewModel extends ViewModel {
     // Executor for background tasks
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private Future<?> generationTask;
+    private volatile int generationRequestId = 0;
 
     /**
      * The public, immutable LiveData that the UI can observe. This follows the recommended pattern of exposing
@@ -102,6 +119,8 @@ public class SudokuViewModel extends ViewModel {
             generationTask.cancel(true); // Pass true to interrupt the thread.
         }
 
+        int requestId = ++generationRequestId;
+        resetForNewGameRequest();
         _isGenerating.setValue(true);
         generationTask = executor.submit(() -> {
             try {
@@ -109,28 +128,37 @@ public class SudokuViewModel extends ViewModel {
                 newBoard.generateNewPuzzle(difficulty);
 
                 // If the task was cancelled, don't update the UI.
-                if (Thread.currentThread().isInterrupted()) {
+                if (Thread.currentThread().isInterrupted() || requestId != generationRequestId) {
                     return;
                 }
 
                 // Post the result back to the main thread
-                new Handler(Looper.getMainLooper()).post(() -> {
+                mainHandler.post(() -> {
+                    if (requestId != generationRequestId) {
+                        return;
+                    }
                     _sudokuBoard.setValue(newBoard);
                     _selectedCell.setValue(null);
-                    _errorCount.setValue(0);
-                    _score.setValue(0);
-                    this.totalErrorsThisGame = 0;
-                    _isGameWon.setValue(false);
-                    _isGameOverWithIncorrectBoard.setValue(false);
                     _isGenerating.setValue(false);
                     resetAndStartTimer();
                 });
-            } catch (Exception e) {
-                // Log the exception, especially if it's an InterruptedException
-                if (e instanceof InterruptedException) {
-                    Thread.currentThread().interrupt(); // Preserve the interrupted status
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                if (requestId == generationRequestId) {
+                    mainHandler.post(() -> {
+                        if (requestId == generationRequestId) {
+                            _isGenerating.setValue(false);
+                        }
+                    });
                 }
-                // Optionally, handle the error state in the UI
+            } catch (Exception e) {
+                if (requestId == generationRequestId) {
+                    mainHandler.post(() -> {
+                        if (requestId == generationRequestId) {
+                            _isGenerating.setValue(false);
+                        }
+                    });
+                }
             }
         });
     }
@@ -164,12 +192,13 @@ public class SudokuViewModel extends ViewModel {
 
         if (cell != null && !cell.isFixed()) {
             int oldValue = cell.getValue();
-            if (oldValue == number)
+            if (oldValue == number) {
                 return; // No change, do nothing
+            }
 
             boolean isError = false;
             int scoreChange = 0;
-            int currentScore = Objects.requireNonNullElse(_score.getValue(), 0);
+            int currentScore = removeCompletionBonusFromScoreIfApplied();
 
             if (number != 0) {
                 if (board.isMoveCorrect(row, col, number)) {
@@ -217,12 +246,12 @@ public class SudokuViewModel extends ViewModel {
             _sudokuBoard.setValue(board); // Notify observers
 
             // Revert the score change
-            int currentScore = Objects.requireNonNullElse(_score.getValue(), 0);
-            _score.setValue(currentScore - lastMove.getScoreChange());
+            int currentScore = removeCompletionBonusFromScoreIfApplied();
+            _score.setValue(Math.max(0, currentScore - lastMove.getScoreChange()));
 
             // If the undone move was an error, decrement the error count
             if (lastMove.wasError()) {
-                this.totalErrorsThisGame--;
+                this.totalErrorsThisGame = Math.max(0, this.totalErrorsThisGame - 1);
                 _errorCount.setValue(this.totalErrorsThisGame);
             }
 
@@ -248,14 +277,20 @@ public class SudokuViewModel extends ViewModel {
         Bundle bundle = new Bundle();
         Pair<Integer, Integer> selection = _selectedCell.getValue();
         if (selection != null) {
-            bundle.putInt("selectedRow", selection.first);
-            bundle.putInt("selectedCol", selection.second);
+            bundle.putInt(STATE_SELECTED_ROW, selection.first);
+            bundle.putInt(STATE_SELECTED_COL, selection.second);
         }
-        bundle.putLong("chronometerBase", chronometerBase);
-        bundle.putBoolean("isTimerRunning", isTimerRunning);
-        bundle.putLong("elapsedTimeInMillis", Objects.requireNonNullElse(_elapsedTimeInMillis.getValue(), 0L));
-        bundle.putInt("errorCount", Objects.requireNonNullElse(_errorCount.getValue(), 0));
-        bundle.putInt("score", Objects.requireNonNullElse(_score.getValue(), 0));
+        bundle.putLong(STATE_CHRONOMETER_BASE, chronometerBase);
+        bundle.putBoolean(STATE_IS_TIMER_RUNNING, isTimerRunning);
+        bundle.putLong(STATE_ELAPSED_TIME_IN_MILLIS, Objects.requireNonNullElse(_elapsedTimeInMillis.getValue(), 0L));
+        bundle.putInt(STATE_ERROR_COUNT, Objects.requireNonNullElse(_errorCount.getValue(), 0));
+        bundle.putInt(STATE_TOTAL_ERRORS, totalErrorsThisGame);
+        bundle.putInt(STATE_SCORE, Objects.requireNonNullElse(_score.getValue(), 0));
+        bundle.putBoolean(STATE_IS_GAME_WON, Boolean.TRUE.equals(_isGameWon.getValue()));
+        bundle.putBoolean(STATE_IS_GAME_OVER_WITH_INCORRECT_BOARD,
+                Boolean.TRUE.equals(_isGameOverWithIncorrectBoard.getValue()));
+        bundle.putBoolean(STATE_COMPLETION_BONUS_APPLIED, completionBonusApplied);
+        bundle.putInt(STATE_AWARDED_COMPLETION_BONUS, awardedCompletionBonus);
 
         return new Pair<>(_sudokuBoard.getValue(), bundle);
     }
@@ -270,31 +305,45 @@ public class SudokuViewModel extends ViewModel {
         if (boardState != null) {
             _sudokuBoard.setValue(boardState);
         }
+        _isGenerating.setValue(false);
 
-        int savedSelectedRow = bundleState.getInt("selectedRow", -1);
-        int savedSelectedCol = bundleState.getInt("selectedCol", -1);
+        int savedSelectedRow = bundleState.getInt(STATE_SELECTED_ROW, -1);
+        int savedSelectedCol = bundleState.getInt(STATE_SELECTED_COL, -1);
         if (savedSelectedRow != -1 && savedSelectedCol != -1) {
             _selectedCell.setValue(new Pair<>(savedSelectedRow, savedSelectedCol));
         } else {
             _selectedCell.setValue(null);
         }
 
-        chronometerBase = bundleState.getLong("chronometerBase", SystemClock.elapsedRealtime());
-        isTimerRunning = bundleState.getBoolean("isTimerRunning", false);
-        _elapsedTimeInMillis.setValue(bundleState.getLong("elapsedTimeInMillis", 0L));
-        _errorCount.setValue(bundleState.getInt("errorCount",
-                _sudokuBoard.getValue() != null ? _sudokuBoard.getValue().countUserErrors() : 0));
-        _score.setValue(bundleState.getInt("score", 0));
+        chronometerBase = bundleState.getLong(STATE_CHRONOMETER_BASE, SystemClock.elapsedRealtime());
+        isTimerRunning = bundleState.getBoolean(STATE_IS_TIMER_RUNNING, false);
+        _elapsedTimeInMillis.setValue(bundleState.getLong(STATE_ELAPSED_TIME_IN_MILLIS, 0L));
+        totalErrorsThisGame = bundleState.getInt(STATE_TOTAL_ERRORS,
+                bundleState.getInt(STATE_ERROR_COUNT,
+                        _sudokuBoard.getValue() != null ? _sudokuBoard.getValue().countUserErrors() : 0));
+        _errorCount.setValue(totalErrorsThisGame);
+        _score.setValue(bundleState.getInt(STATE_SCORE, 0));
+        completionBonusApplied = bundleState.getBoolean(STATE_COMPLETION_BONUS_APPLIED, false);
+        awardedCompletionBonus = bundleState.getInt(STATE_AWARDED_COMPLETION_BONUS, 0);
+
+        boolean restoredGameWon = bundleState.getBoolean(STATE_IS_GAME_WON, false);
+        boolean restoredIncorrectBoard = bundleState.getBoolean(STATE_IS_GAME_OVER_WITH_INCORRECT_BOARD, false);
+        _isGameWon.setValue(restoredGameWon);
+        _isGameOverWithIncorrectBoard.setValue(restoredIncorrectBoard);
+
+        if (restoredGameWon || restoredIncorrectBoard) {
+            stopTimer();
+            return;
+        }
 
         // If the game was running and not finished, restart the timer.
-        if (isTimerRunning) {
+        if (_sudokuBoard.getValue() != null && _sudokuBoard.getValue().isBoardFull()) {
+            stopTimer();
+            checkGameStatus();
+        } else if (isTimerRunning) {
             startTimerIfNotRunning();
         } else {
             stopTimer();
-            // If the board is full, re-check the game status (e.g., after rotation).
-            if (_sudokuBoard.getValue() != null && _sudokuBoard.getValue().isBoardFull()) {
-                checkGameStatus();
-            }
         }
     }
 
@@ -356,25 +405,66 @@ public class SudokuViewModel extends ViewModel {
             // Check if the board is valid and all user cells are correct
             if (board.isCurrentBoardStateValidAccordingToRules() && board.areAllUserCellsCorrect()) {
                 // Game won - calculate final score with bonus
-                long timeInMillis = Objects.requireNonNullElse(_elapsedTimeInMillis.getValue(), 0L);
-                long timeBonus = Math.max(0, 600 - (timeInMillis / 1000)); // Example bonus: 600 seconds base
-
-                int difficultyBonus = switch (board.getCurrentDifficulty()) {
-                case EASY -> 500;
-                case HARD -> 2000;
-                default -> 1000;
-                };
-
-                int currentScore = Objects.requireNonNullElse(_score.getValue(), 0);
-                _score.setValue((int) (currentScore + timeBonus + difficultyBonus));
+                if (!completionBonusApplied) {
+                    long timeInMillis = Objects.requireNonNullElse(_elapsedTimeInMillis.getValue(), 0L);
+                    awardedCompletionBonus = calculateCompletionBonus(board, timeInMillis);
+                    int currentScore = Objects.requireNonNullElse(_score.getValue(), 0);
+                    _score.setValue(currentScore + awardedCompletionBonus);
+                    completionBonusApplied = true;
+                }
+                _isGameOverWithIncorrectBoard.setValue(false);
                 _isGameWon.setValue(true);
             } else {
                 // Board is full but incorrect
+                _isGameWon.setValue(false);
                 _isGameOverWithIncorrectBoard.setValue(true);
             }
         } else {
+            _isGameWon.setValue(false);
+            _isGameOverWithIncorrectBoard.setValue(false);
             startTimerIfNotRunning();
         }
+    }
+
+    private void resetForNewGameRequest() {
+        stopTimer();
+        _selectedCell.setValue(null);
+        _elapsedTimeInMillis.setValue(0L);
+        _errorCount.setValue(0);
+        _score.setValue(0);
+        totalErrorsThisGame = 0;
+        completionBonusApplied = false;
+        awardedCompletionBonus = 0;
+        _isGameWon.setValue(false);
+        _isGameOverWithIncorrectBoard.setValue(false);
+        chronometerBase = 0L;
+    }
+
+    private int removeCompletionBonusFromScoreIfApplied() {
+        int currentScore = Objects.requireNonNullElse(_score.getValue(), 0);
+        if (!completionBonusApplied) {
+            return currentScore;
+        }
+
+        currentScore = Math.max(0, currentScore - awardedCompletionBonus);
+        completionBonusApplied = false;
+        awardedCompletionBonus = 0;
+        _score.setValue(currentScore);
+        _isGameWon.setValue(false);
+        _isGameOverWithIncorrectBoard.setValue(false);
+        return currentScore;
+    }
+
+    private int calculateCompletionBonus(SudokuBoard board, long timeInMillis) {
+        long timeBonus = Math.max(0, 600 - (timeInMillis / 1000)); // Example bonus: 600 seconds base
+
+        int difficultyBonus = switch (board.getCurrentDifficulty()) {
+        case EASY -> 500;
+        case HARD -> 2000;
+        default -> 1000;
+        };
+
+        return (int) (timeBonus + difficultyBonus);
     }
 
     /**

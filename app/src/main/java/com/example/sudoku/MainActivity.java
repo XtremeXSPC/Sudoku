@@ -2,7 +2,6 @@ package com.example.sudoku;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -47,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
     private final TextView[][] cellTextViews = new TextView[9][9];
 
     @Override
-    @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // Inflate the layout using ViewBinding.
@@ -62,49 +60,20 @@ public class MainActivity extends AppCompatActivity {
 
         // State restoration logic.
         if (savedInstanceState == null) {
-            // This is the first boot, not a rotation. Let's read the intent.
-            SudokuBoard.Difficulty difficulty;
-            // Handle the modern and deprecated getParcelable methods based on API level.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                difficulty = getIntent().getSerializableExtra(EXTRA_DIFFICULTY, SudokuBoard.Difficulty.class);
-            } else {
-                // Suppress the deprecation warning for older APIs.
-                difficulty = (SudokuBoard.Difficulty) getIntent().getSerializableExtra(EXTRA_DIFFICULTY);
-            }
-
-            // If for some reason the difficulty is null, we use a default.
-            if (difficulty == null) {
-                difficulty = SudokuBoard.Difficulty.MEDIUM;
-            }
-
             // We explicitly tell the ViewModel to start a new game.
-            viewModel.startNewGame(difficulty);
+            viewModel.startNewGame(resolveLaunchDifficulty());
 
         } else {
             // Restore state after process death. The ViewModel is newly created, so we need to
             // restore its state.
-            SudokuBoard boardState;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                boardState = savedInstanceState.getParcelable(KEY_SUDOKU_BOARD_STATE, SudokuBoard.class);
-            } else {
-                boardState = savedInstanceState.getParcelable(KEY_SUDOKU_BOARD_STATE);
-            }
+            SudokuBoard boardState = savedInstanceState.getParcelable(KEY_SUDOKU_BOARD_STATE, SudokuBoard.class);
             Bundle viewModelBundle = savedInstanceState.getBundle(KEY_VIEW_MODEL_BUNDLE_STATE);
 
             if (boardState != null && viewModelBundle != null) {
                 viewModel.restoreState(boardState, viewModelBundle);
             } else {
                 // Fallback: if state is missing, start a new game.
-                SudokuBoard.Difficulty difficulty;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    difficulty = getIntent().getSerializableExtra(EXTRA_DIFFICULTY, SudokuBoard.Difficulty.class);
-                } else {
-                    difficulty = (SudokuBoard.Difficulty) getIntent().getSerializableExtra(EXTRA_DIFFICULTY);
-                }
-                if (difficulty == null) {
-                    difficulty = SudokuBoard.Difficulty.MEDIUM;
-                }
-                viewModel.startNewGame(difficulty);
+                viewModel.startNewGame(resolveLaunchDifficulty());
             }
         }
 
@@ -129,10 +98,7 @@ public class MainActivity extends AppCompatActivity {
                         if (viewModel.getSudokuBoard().getValue() != null && cellTextViews[0][0] != null) {
                             updateGridUI(viewModel.getSudokuBoard().getValue());
                         }
-                        if (viewModel.getSelectedCell().getValue() != null && cellTextViews[0][0] != null) {
-                            Pair<Integer, Integer> selection = viewModel.getSelectedCell().getValue();
-                            // updateSelectedCellUI(selection.first, selection.second);
-                        }
+                        updateHighlightOverlay(viewModel.getSelectedCell().getValue());
                     }
                 });
     }
@@ -166,6 +132,11 @@ public class MainActivity extends AppCompatActivity {
         case HARD -> R.string.difficulty_hard;
         default -> R.string.difficulty_medium;
         };
+    }
+
+    private SudokuBoard.Difficulty resolveLaunchDifficulty() {
+        SudokuBoard.Difficulty difficulty = getIntent().getSerializableExtra(EXTRA_DIFFICULTY, SudokuBoard.Difficulty.class);
+        return difficulty != null ? difficulty : SudokuBoard.Difficulty.MEDIUM;
     }
 
     /**
@@ -261,8 +232,7 @@ public class MainActivity extends AppCompatActivity {
             updateGridUI(viewModel.getSudokuBoard().getValue());
         }
         if (viewModel.getSelectedCell().getValue() != null) {
-            Pair<Integer, Integer> selection = viewModel.getSelectedCell().getValue();
-            // updateSelectedCellUI(selection.first, selection.second);
+            updateHighlightOverlay(viewModel.getSelectedCell().getValue());
         }
     }
 
@@ -279,19 +249,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Observe cell selection changes
-        viewModel.getSelectedCell().observe(this, selection -> {
-            float cellSize = (binding.sudokuContainer.getWidth() > 0)
-                    ? (float) binding.sudokuContainer.getWidth() / 9.0f
-                    : 0f;
-            if (selection != null) {
-                highlightOverlayView.highlightCell(selection.first, selection.second, cellSize);
-            } else {
-                highlightOverlayView.highlightCell(null, null, cellSize);
-            }
-
-            // We can remove the old highlight logic from TextView
-            // updateSelectedCellUI(null, null);
-        });
+        viewModel.getSelectedCell().observe(this, this::updateHighlightOverlay);
 
         // Observe timer
         viewModel.getElapsedTimeInMillis().observe(this, timeInMillis -> {
@@ -375,8 +333,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         // Re-apply highlight on the selected cell, if any
-        Pair<Integer, Integer> selection = viewModel.getSelectedCell().getValue();
-        // updateSelectedCellUI(selection != null ? selection.first : null, selection != null ? selection.second : null);
+        updateHighlightOverlay(viewModel.getSelectedCell().getValue());
+    }
+
+    private void updateHighlightOverlay(Pair<Integer, Integer> selection) {
+        float cellSize = (binding.sudokuContainer.getWidth() > 0) ? (float) binding.sudokuContainer.getWidth() / 9.0f : 0f;
+        if (selection != null) {
+            highlightOverlayView.highlightCell(selection.first, selection.second, cellSize);
+        } else {
+            highlightOverlayView.highlightCell(null, null, cellSize);
+        }
     }
 
     /**

@@ -48,12 +48,12 @@ Prerequisites: Android Studio (Koala+ recommended), JDK 21, Android SDK 36; the 
 
 1. Clone the repo: `git clone https://github.com/<your-username>/Basic_Sudoku.git`
 2. Open the project in Android Studio and let Gradle sync.
-3. Pick a device/emulator running Android 14+ and press Run, or build from the CLI with `./gradlew assembleDebug`.
+3. Pick a device/emulator running Android 14+ and press Run, or build from the CLI with `./gradlew assembleDebug`. If your shell defaults to JDK 25, switch `JAVA_HOME` back to JDK 21 first.
 
 ## Development and testing
 
 - Quick build: `./gradlew assembleDebug`
-- Unit/UI tests: none are present yet; add them under `app/src/test` or `app/src/androidTest` and run with `./gradlew test` or `./gradlew connectedAndroidTest`.
+- Unit/UI tests: JVM regression tests live in `app/src/test`, and instrumented tests live in `app/src/androidTest`; run them with `./gradlew test` or `./gradlew connectedAndroidTest`.
 - Code style: Kotlin uses the official style; Java follows standard Android conventions and lives alongside Compose code where needed.
 - More tips live in `docs/DEVELOPMENT.md`.
 
