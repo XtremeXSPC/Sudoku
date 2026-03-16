@@ -70,7 +70,7 @@ public class SudokuViewModelRestoreTest {
     }
 
     @Test
-    public void saveAndRestore_allowsUndoWithoutNegativeErrorCount() throws Exception {
+    public void saveAndRestore_undoPreservesHistoricalErrorCount() throws Exception {
         SudokuViewModel originalViewModel = new SudokuViewModel();
         originalViewModel.restoreState(createBoardWithOnePastErrorAndOneOpenCell(),
                 createBundle(0, 1, 1, 1, 0, false, false, false, false, 0));
@@ -81,7 +81,7 @@ public class SudokuViewModelRestoreTest {
         restoredViewModel.restoreState(savedState.first, savedState.second);
 
         assertTrue(restoredViewModel.undoLastMove());
-        assertEquals(Integer.valueOf(0), restoredViewModel.getErrorCount().getValue());
+        assertEquals(Integer.valueOf(1), restoredViewModel.getErrorCount().getValue());
         assertEquals(0, restoredViewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
     }
 

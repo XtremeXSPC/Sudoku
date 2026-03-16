@@ -48,6 +48,8 @@ public class SudokuViewModel extends ViewModel {
     private final MutableLiveData<Boolean> _isGameWon = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _isGameOverWithIncorrectBoard = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _isGenerating = new MutableLiveData<>(false);
+    // Tracks cumulative mistakes committed in the current game. Undo restores the board state,
+    // but it does not erase mistakes that were already made.
     private int totalErrorsThisGame = 0;
     private boolean completionBonusApplied = false;
     private int awardedCompletionBonus = 0;
@@ -248,12 +250,6 @@ public class SudokuViewModel extends ViewModel {
             // Revert the score change
             int currentScore = removeCompletionBonusFromScoreIfApplied();
             _score.setValue(Math.max(0, currentScore - lastMove.getScoreChange()));
-
-            // If the undone move was an error, decrement the error count
-            if (lastMove.wasError()) {
-                this.totalErrorsThisGame = Math.max(0, this.totalErrorsThisGame - 1);
-                _errorCount.setValue(this.totalErrorsThisGame);
-            }
 
             // The game might no longer be in a won/lost state after an undo.
             _isGameWon.setValue(false);

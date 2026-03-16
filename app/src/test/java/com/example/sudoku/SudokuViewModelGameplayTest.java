@@ -61,7 +61,7 @@ public class SudokuViewModelGameplayTest {
     }
 
     @Test
-    public void incorrectMoveAndUndo_keepScoreAndErrorsConsistent() throws Exception {
+    public void incorrectMoveAndUndo_restoresBoardButKeepsHistoricalErrorCount() throws Exception {
         SudokuViewModel viewModel = new SudokuViewModel();
         viewModel.restoreState(createBoardWithOpenCells(SudokuBoard.Difficulty.MEDIUM, new int[][] { { 0, 0 }, { 0, 1 } }),
                 createBundle(0, 0, 40));
@@ -74,7 +74,7 @@ public class SudokuViewModelGameplayTest {
 
         assertTrue(viewModel.undoLastMove());
         assertEquals(Integer.valueOf(40), viewModel.getScore().getValue());
-        assertEquals(Integer.valueOf(0), viewModel.getErrorCount().getValue());
+        assertEquals(Integer.valueOf(1), viewModel.getErrorCount().getValue());
         assertEquals(0, viewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
     }
 
