@@ -16,6 +16,8 @@ import java.util.Stack;
  */
 public class SudokuBoard implements Parcelable {
 
+    private static final int MAX_PUZZLE_GENERATION_ATTEMPTS = 8;
+
     /**
      * Enum for Sudoku difficulty levels. It determines how many numbers are removed from a fully solved grid.
      */
@@ -98,28 +100,38 @@ public class SudokuBoard implements Parcelable {
     public void generateNewPuzzle(Difficulty difficulty) throws InterruptedException {
         this.currentDifficulty = difficulty;
         this.movesHistory.clear();
-        clearLogicalBoard();
-
-        // This will fill the solutionBoard with a valid, complete Sudoku grid.
-        fillBoardRecursive(0, 0);
-
-        // Copy the solution to the user-facing board.
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
-                board[r][c] = new SudokuCell(solutionBoard[r][c], false, true, null);
+        for (int attempt = 0; attempt < MAX_PUZZLE_GENERATION_ATTEMPTS; attempt++) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException("Puzzle generation was cancelled.");
             }
-        }
 
-        removeNumbersForPuzzle(difficulty.cellsToRemove);
+            clearLogicalBoard();
 
-        // Mark the remaining numbers as fixed.
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
-                if (board[r][c].getValue() != 0) {
-                    board[r][c].setFixed(true);
+            // This will fill the solutionBoard with a valid, complete Sudoku grid.
+            fillBoardRecursive(0, 0);
+
+            // Copy the solution to the user-facing board.
+            for (int r = 0; r < 9; r++) {
+                for (int c = 0; c < 9; c++) {
+                    board[r][c] = new SudokuCell(solutionBoard[r][c], false, true, null);
                 }
             }
+
+            if (removeNumbersForPuzzle(difficulty.cellsToRemove)) {
+                // Mark the remaining numbers as fixed.
+                for (int r = 0; r < 9; r++) {
+                    for (int c = 0; c < 9; c++) {
+                        if (board[r][c].getValue() != 0) {
+                            board[r][c].setFixed(true);
+                        }
+                    }
+                }
+                return;
+            }
         }
+
+        throw new IllegalStateException("Unable to generate a unique puzzle after " + MAX_PUZZLE_GENERATION_ATTEMPTS
+                + " attempts.");
     }
 
     /**
@@ -356,36 +368,51 @@ public class SudokuBoard implements Parcelable {
      *
      * @param cellsToRemove The number of cells to make empty.
      */
-    private void removeNumbersForPuzzle(int cellsToRemove) throws InterruptedException {
-        int count = cellsToRemove;
-        while (count > 0) {
+    private boolean removeNumbersForPuzzle(int cellsToRemove) throws InterruptedException {
+        List<Integer> positions = new ArrayList<>(81);
+        for (int index = 0; index < 81; index++) {
+            positions.add(index);
+        }
+        Collections.shuffle(positions, random);
+
+        int removedCount = 0;
+        for (int position : positions) {
             if (Thread.currentThread().isInterrupted()) {
                 throw new InterruptedException("Puzzle generation was cancelled.");
             }
 
-            int r = random.nextInt(9);
-            int c = random.nextInt(9);
+            int row = position / 9;
+            int col = position % 9;
+            if (board[row][col].getValue() == 0) {
+                continue;
+            }
 
-            if (board[r][c].getValue() != 0) {
-                int tempVal = board[r][c].getValue();
-                board[r][c].setValue(0);
+            int previousValue = board[row][col].getValue();
+            board[row][col].setValue(0);
 
-                // Create a temporary board copy to pass to the solver.
-                int[][] tempBoardForSolver = new int[9][9];
-                for (int rowIdx = 0; rowIdx < 9; rowIdx++) {
-                    for (int colIdx = 0; colIdx < 9; colIdx++) {
-                        tempBoardForSolver[rowIdx][colIdx] = board[rowIdx][colIdx].getValue();
-                    }
+            // Removing more clues can only make uniqueness harder to preserve, so a
+            // clue that already fails this check would not become removable later.
+            if (countUniqueSolutions(copyBoardValues(), 0) == 1) {
+                removedCount++;
+                if (removedCount == cellsToRemove) {
+                    return true;
                 }
-
-                // If removing the number results in more than one solution, revert it.
-                if (countUniqueSolutions(tempBoardForSolver, 0) != 1) {
-                    board[r][c].setValue(tempVal);
-                } else {
-                    count--;
-                }
+            } else {
+                board[row][col].setValue(previousValue);
             }
         }
+
+        return false;
+    }
+
+    private int[][] copyBoardValues() {
+        int[][] copy = new int[9][9];
+        for (int row = 0; row < 9; row++) {
+            for (int col = 0; col < 9; col++) {
+                copy[row][col] = board[row][col].getValue();
+            }
+        }
+        return copy;
     }
 
     /**

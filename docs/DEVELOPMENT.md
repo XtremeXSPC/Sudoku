@@ -12,12 +12,13 @@
 - CLI: run `./gradlew assembleDebug` to build; use `./gradlew installDebug` with a connected device/emulator to deploy.
 - The Compose launcher (`HomeActivity`) starts first; it forwards the selected difficulty to `MainActivity`.
 - If Gradle picks JDK 25 from your shell environment, force JDK 21 before running CLI tasks. On macOS, `export JAVA_HOME=$(/usr/libexec/java_home -v 21)` is the safest option.
+- On macOS, `make verify` already wires JDK 21 automatically and runs the local quality gate: `test`, `assembleDebug`, and `lintDebug`.
 
 ## Testing
 
 - JVM tests live under `app/src/test` and run with `./gradlew test`.
 - Instrumented/device tests live under `app/src/androidTest` and run with `./gradlew connectedAndroidTest`.
-- Current JVM coverage includes restore/endgame regressions around `SudokuViewModel`; logic-heavy additions should keep favoring local JVM tests where possible.
+- Current JVM coverage includes `SudokuBoard` generator/undo/rule-validation checks plus `SudokuViewModel` restore and gameplay regressions; logic-heavy additions should keep favoring local JVM tests where possible.
 
 ## Code style and patterns
 

@@ -1,5 +1,5 @@
 # ============================================================================ #
-# Makefile for Android Development Workflow
+# ----------------------- ANDROID DEVELOPMENT MAKEFILE ----------------------- #
 # ============================================================================ #
 # This Makefile provides a comprehensive set of targets for Android app
 # development, covering the complete development lifecycle from building
@@ -28,19 +28,21 @@
 #   - ADB accessible in platform-tools
 # ============================================================================ #
 
-# Configurable variables
+# Configurable variables.
 SDK_DIR       := $(HOME)/Library/Android/sdk
 ADB           := $(SDK_DIR)/platform-tools/adb
 AVD_NAME      := Pixel_8
 EMULATOR      := $(SDK_DIR)/emulator/emulator -gpu host
 APK_DEBUG     := app/build/outputs/apk/debug/app-debug.apk
 APK_RELEASE   := app/build/outputs/apk/release/app-release.apk
+JDK_21_HOME   ?= $(shell /usr/libexec/java_home -v 21 2>/dev/null)
+GRADLEW       := env JAVA_HOME="$(if $(JDK_21_HOME),$(JDK_21_HOME),$(JAVA_HOME))" ./gradlew
 
-# Application-specific variables
+# Application-specific variables.
 PACKAGE_NAME  := com.example.sudoku
 MAIN_ACTIVITY := .HomeActivity
 
-# Colors for output
+# Colors for output.
 COLOR_RESET   := \033[0m
 COLOR_BOLD    := \033[1m
 COLOR_GREEN   := \033[32m
@@ -53,20 +55,18 @@ NC            := $(COLOR_RESET)
 
 LOG_FILTER    := $(PACKAGE_NAME)|AndroidRuntime
 
-# ============================================================================ #
-# Principal Makefile Targets
-# ============================================================================ #
+# ======================== PRINCIPAL MAKEFILE TARGETS ======================== #
 
 .PHONY: help build build-release install install-release run dev quick-run \
         emulator emulator-cold emulator-wait stop-emulator devices \
-        clean clean-all lint test test-unit test-instrumented \
+        clean clean-all lint test test-unit test-instrumented verify \
         log log-brief log-time log-error log-warn log-debug log-crash log-tag clear-log \
         uninstall version apk-info debug
 
-# Default target
+# Default target.
 .DEFAULT_GOAL := help
 
-# Help target
+# Help target.
 help:
 	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════════$(NC)"
 	@echo "$(COLOR_BOLD)                Android Development Makefile                $(COLOR_RESET)"
@@ -85,6 +85,7 @@ help:
 	@echo "  make test               - Run all tests"
 	@echo "  make test-unit          - Run unit tests only"
 	@echo "  make test-instrumented  - Run instrumented tests on device"
+	@echo "  make verify             - Run unit tests, debug build, and lint with JDK 21"
 	@echo ""
 	@echo "$(COLOR_GREEN)Emulator Management:$(COLOR_RESET)"
 	@echo "  make emulator           - Start emulator in background"
@@ -112,20 +113,20 @@ help:
 	@echo "  make apk-info           - Show APK details (size, permissions, activities)"
 
 # ============================================================================ #
-# Build the debug APK
+# Build the debug APK.
 build:
 	@echo "$(COLOR_BLUE)Building debug APK...$(COLOR_RESET)"
-	./gradlew assembleDebug
+	$(GRADLEW) assembleDebug
 	@echo "$(COLOR_GREEN)Build complete: $(APK_DEBUG)$(COLOR_RESET)"
 
-# Build release APK
+# Build release APK.
 build-release:
 	@echo "$(COLOR_BLUE)Building release APK...$(COLOR_RESET)"
-	./gradlew assembleRelease
+	$(GRADLEW) assembleRelease
 	@echo "$(COLOR_GREEN)Build complete: $(APK_RELEASE)$(COLOR_RESET)"
 
 # ============================================================================ #
-# Install the APK to the connected device/emulator
+# Install the APK to the connected device/emulator.
 install: build
 	@echo "$(COLOR_BLUE)Installing APK...$(COLOR_RESET)"
 	@if ! $(ADB) devices 2>/dev/null | grep -q "device$$"; then \
@@ -146,7 +147,7 @@ install: build
 	@$(ADB) install -r $(APK_DEBUG)
 	@echo "$(COLOR_GREEN)Installation complete$(COLOR_RESET)"
 
-# Install release APK
+# Install release APK.
 install-release: build-release
 	@echo "$(COLOR_BLUE)Installing release APK...$(COLOR_RESET)"
 	@if ! $(ADB) devices 2>/dev/null | grep -q "device$$"; then \
@@ -166,14 +167,14 @@ install-release: build-release
 	@$(ADB) install -r $(APK_RELEASE)
 	@echo "$(COLOR_GREEN)Installation complete$(COLOR_RESET)"
 
-# Build, install, and launch the app
+# Build, install, and launch the app.
 run: install
 	@echo "$(COLOR_BLUE)Launching app...$(COLOR_RESET)"
 	$(ADB) shell am start -n $(PACKAGE_NAME)/$(MAIN_ACTIVITY)
 	@echo "$(COLOR_GREEN)App launched$(COLOR_RESET)"
 
 # ============================================================================ #
-# Fast development cycle: incremental build + install + run
+# Fast development cycle: incremental build + install + run.
 dev:
 	@echo "$(COLOR_BOLD)$(COLOR_BLUE)Starting development build...$(COLOR_RESET)"
 	@if ! $(ADB) devices 2>/dev/null | grep -q "device$$"; then \
@@ -181,10 +182,10 @@ dev:
 		$(MAKE) --no-print-directory emulator; \
 		$(MAKE) --no-print-directory emulator-wait || exit 1; \
 	fi
-	@./gradlew assembleDebug --parallel --daemon
+	@$(GRADLEW) assembleDebug --parallel --daemon
 	@$(MAKE) --no-print-directory quick-run
 
-# Quick install and run without rebuilding
+# Quick install and run without rebuilding.
 quick-run:
 	@echo "$(COLOR_BLUE)Installing and launching...$(COLOR_RESET)"
 	@if ! $(ADB) devices 2>/dev/null | grep -q "device$$"; then \
@@ -210,7 +211,7 @@ quick-run:
 	@$(ADB) shell am start -n $(PACKAGE_NAME)/$(MAIN_ACTIVITY)
 	@echo "$(COLOR_GREEN)App running$(COLOR_RESET)"
 
-# Start the app with a JDWP debugger port forwarded to localhost:8700
+# Start the app with a JDWP debugger port forwarded to localhost:8700.
 debug: build
 	@echo "$(COLOR_BOLD)$(COLOR_BLUE)Starting debug session...$(COLOR_RESET)"
 	@if ! $(ADB) devices 2>/dev/null | grep -q "device$$"; then \
@@ -235,7 +236,7 @@ debug: build
 	echo "$(COLOR_YELLOW)Attach the debugger in VS Code now (host localhost, port 8700)$(COLOR_RESET)"
 
 # ============================================================================ #
-# Start the emulator in the background (silent)
+# Start the emulator in the background (silent).
 emulator:
 	@echo "$(COLOR_BLUE)Starting emulator $(AVD_NAME)...$(COLOR_RESET)"
 	@if pgrep -f "emulator.*$(AVD_NAME)" > /dev/null; then \
@@ -245,13 +246,13 @@ emulator:
 		echo "$(COLOR_GREEN)Emulator starting in background$(COLOR_RESET)"; \
 	fi
 
-# Start the emulator with cold boot and software rendering (troubleshooting)
+# Start the emulator with cold boot and software rendering (troubleshooting).
 emulator-cold:
 	@echo "$(COLOR_BLUE)Starting emulator with cold boot...$(COLOR_RESET)"
 	$(EMULATOR) -avd $(AVD_NAME) -no-snapshot-load -gpu swiftshader_indirect > /dev/null 2>&1 &
 	@echo "$(COLOR_GREEN)Emulator starting (cold boot)$(COLOR_RESET)"
 
-# Wait for emulator to fully boot
+# Wait for emulator to fully boot.
 emulator-wait:
 	@echo "$(COLOR_BLUE)Waiting for emulator to boot completely...$(COLOR_RESET)"
 	@echo "$(COLOR_YELLOW)This may take 1-2 minutes on first boot$(COLOR_RESET)"
@@ -284,86 +285,91 @@ emulator-wait:
 	echo "$(COLOR_YELLOW)Timeout waiting for emulator (3 min). Check with 'make devices'$(COLOR_RESET)"; \
 	exit 1
 
-# Stop the emulator
+# Stop the emulator.
 stop-emulator:
 	@echo "$(COLOR_BLUE)Stopping emulator...$(COLOR_RESET)"
 	@$(ADB) emu kill 2>/dev/null || echo "$(COLOR_YELLOW)No emulator running$(COLOR_RESET)"
 
 # ============================================================================ #
-# List connected devices
+# List connected devices.
 devices:
 	@echo "$(COLOR_BOLD)Connected Devices:$(COLOR_RESET)"
 	@$(ADB) devices -l
 
-# Run linter and code quality checks
+# Run linter and code quality checks.
 lint:
 	@echo "$(COLOR_BLUE)Running code quality checks...$(COLOR_RESET)"
-	./gradlew lint
-	@echo "$(COLOR_GREEN)Lint complete. Check app/build/reports/lint-results.html$(COLOR_RESET)"
+	$(GRADLEW) lint
+	@echo "$(COLOR_GREEN)Lint complete. Check app/build/reports/ for the generated HTML report$(COLOR_RESET)"
 
 # ============================================================================ #
-# Run all tests
+# Run all tests.
 test:
 	@echo "$(COLOR_BLUE)Running all tests...$(COLOR_RESET)"
-	./gradlew test connectedAndroidTest
+	$(GRADLEW) test connectedAndroidTest
 
-# Run unit tests only
+# Run unit tests only.
 test-unit:
 	@echo "$(COLOR_BLUE)Running unit tests...$(COLOR_RESET)"
-	./gradlew test
+	$(GRADLEW) test
 	@echo "$(COLOR_GREEN)Unit tests complete$(COLOR_RESET)"
 
-# Run instrumented tests on connected device
+# Run instrumented tests on connected device.
 test-instrumented:
 	@echo "$(COLOR_BLUE)Running instrumented tests...$(COLOR_RESET)"
 	@$(ADB) wait-for-device
-	./gradlew connectedAndroidTest
+	$(GRADLEW) connectedAndroidTest
 	@echo "$(COLOR_GREEN)Instrumented tests complete$(COLOR_RESET)"
 
+verify:
+	@echo "$(COLOR_BLUE)Running unit tests, debug build, and lint with JDK 21...$(COLOR_RESET)"
+	$(GRADLEW) test assembleDebug lintDebug
+	@echo "$(COLOR_GREEN)Verification complete$(COLOR_RESET)"
+
 # ============================================================================ #
-# Show logs for the app (Android Studio style with colors and formatting)
+# Show logs for the app (Android Studio style with colors and formatting).
 log:
 	@echo "$(COLOR_BLUE)Showing logs for $(PACKAGE_NAME)...$(COLOR_RESET)"
 	@echo "$(COLOR_YELLOW)Press Ctrl+C to stop$(COLOR_RESET)"
 	@$(ADB) logcat -v threadtime *:V | grep --color=never -E "$(LOG_FILTER)" | \
 	awk 'BEGIN{red="$(COLOR_RED)";yellow="$(COLOR_YELLOW)";green="$(COLOR_GREEN)";cyan="$(COLOR_CYAN)";magenta="$(COLOR_MAGENTA)";reset="$(COLOR_RESET)"}{lvl=$$5;gsub(/[^A-Z]/,"",lvl);color=reset;if(lvl=="E")color=red;else if(lvl=="W")color=yellow;else if(lvl=="I")color=green;else if(lvl=="D")color=cyan;else if(lvl=="V")color=magenta;print color $$0 reset; fflush(stdout);}'
 
-# Show logs with brief format (more compact)
+# Show logs with brief format (more compact).
 log-brief:
 	@echo "$(COLOR_BLUE)Showing brief logs...$(COLOR_RESET)"
 	@$(ADB) logcat -v brief *:V | grep --color=never -E "$(LOG_FILTER)" | \
 	awk 'BEGIN{red="$(COLOR_RED)";yellow="$(COLOR_YELLOW)";green="$(COLOR_GREEN)";cyan="$(COLOR_CYAN)";magenta="$(COLOR_MAGENTA)";reset="$(COLOR_RESET)"}{lvl=substr($$1,1,1);color=reset;if(lvl=="E")color=red;else if(lvl=="W")color=yellow;else if(lvl=="I")color=green;else if(lvl=="D")color=cyan;else if(lvl=="V")color=magenta;print color $$0 reset; fflush(stdout);}'
 
-# Show logs with time format (Android Studio default)
+# Show logs with time format (Android Studio default).
 log-time:
 	@echo "$(COLOR_BLUE)Showing logs with timestamps...$(COLOR_RESET)"
 	@$(ADB) logcat -v time *:V | grep --color=never -E "$(LOG_FILTER)" | \
 	awk 'BEGIN{red="$(COLOR_RED)";yellow="$(COLOR_YELLOW)";green="$(COLOR_GREEN)";cyan="$(COLOR_CYAN)";magenta="$(COLOR_MAGENTA)";reset="$(COLOR_RESET)"}{lvl=$$5;gsub(/[^A-Z]/,"",lvl);color=reset;if(lvl=="E")color=red;else if(lvl=="W")color=yellow;else if(lvl=="I")color=green;else if(lvl=="D")color=cyan;else if(lvl=="V")color=magenta;print color $$0 reset; fflush(stdout);}'
 
-# Show error logs only
+# Show error logs only.
 log-error:
 	@echo "$(COLOR_BLUE)Showing error logs...$(COLOR_RESET)"
 	@$(ADB) logcat -v threadtime *:E | grep --color=never -E "$(LOG_FILTER)" | \
 	awk 'BEGIN{red="$(COLOR_RED)";reset="$(COLOR_RESET)"}{print red $$0 reset; fflush(stdout);}'
 
-# Show warning and error logs
+# Show warning and error logs.
 log-warn:
 	@echo "$(COLOR_BLUE)Showing warning and error logs...$(COLOR_RESET)"
 	@$(ADB) logcat -v threadtime *:W | grep --color=never -E "$(LOG_FILTER)" | \
 	awk 'BEGIN{red="$(COLOR_RED)";yellow="$(COLOR_YELLOW)";reset="$(COLOR_RESET)"}{lvl=$$5;gsub(/[^A-Z]/,"",lvl);color=reset;if(lvl=="E")color=red;else color=yellow;print color $$0 reset; fflush(stdout);}'
 
-# Show debug logs
+# Show debug logs.
 log-debug:
 	@echo "$(COLOR_BLUE)Showing debug logs...$(COLOR_RESET)"
 	@$(ADB) logcat -v threadtime *:D | grep --color=never -E "$(LOG_FILTER)" | \
 	awk 'BEGIN{cyan="$(COLOR_CYAN)";reset="$(COLOR_RESET)"}{print cyan $$0 reset; fflush(stdout);}'
 
-# Show crash logs
+# Show crash logs.
 log-crash:
 	@echo "$(COLOR_BLUE)Showing crash logs...$(COLOR_RESET)"
 	@$(ADB) logcat -b crash -v threadtime
 
-# Filter logs by tag
+# Filter logs by tag.
 log-tag:
 	@echo "$(COLOR_BLUE)Usage: make log-tag TAG=YourTag$(COLOR_RESET)"
 	@if [ -z "$(TAG)" ]; then \
@@ -372,38 +378,38 @@ log-tag:
 	fi
 	@$(ADB) logcat -v threadtime -s $(TAG):*
 
-# Clear logcat buffer
+# Clear logcat buffer.
 clear-log:
 	@echo "$(COLOR_BLUE)Clearing log buffer...$(COLOR_RESET)"
 	@$(ADB) logcat -c
 	@echo "$(COLOR_GREEN)Log buffer cleared$(COLOR_RESET)"
 
 # ============================================================================ #
-# Clean the project
+# Clean the project.
 clean:
 	@echo "$(COLOR_BLUE)Cleaning build artifacts...$(COLOR_RESET)"
-	./gradlew clean
+	$(GRADLEW) clean
 	@echo "$(COLOR_GREEN)Clean complete$(COLOR_RESET)"
 
-# Deep clean including gradle cache
+# Deep clean including gradle cache.
 clean-all:
 	@echo "$(COLOR_BLUE)Deep cleaning project...$(COLOR_RESET)"
-	./gradlew clean cleanBuildCache
+	$(GRADLEW) clean cleanBuildCache
 	@rm -rf .gradle build app/build
 	@echo "$(COLOR_GREEN)Deep clean complete$(COLOR_RESET)"
 
-# Uninstall app from device
+# Uninstall app from device.
 uninstall:
 	@echo "$(COLOR_BLUE)Uninstalling app...$(COLOR_RESET)"
 	@$(ADB) uninstall $(PACKAGE_NAME) 2>/dev/null || echo "$(COLOR_YELLOW)App not installed$(COLOR_RESET)"
 
-# Show version information
+# Show version information.
 version:
 	@echo "$(COLOR_BOLD)Version Information:$(COLOR_RESET)"
 	@grep "versionName" app/build.gradle.kts | head -1
 	@grep "versionCode" app/build.gradle.kts | head -1
 
-# Show APK information (size, permissions, version)
+# Show APK information (size, permissions, version).
 apk-info:
 	@echo "$(COLOR_BOLD)APK Information:$(COLOR_RESET)"
 	@if [ ! -f "$(APK_DEBUG)" ]; then \

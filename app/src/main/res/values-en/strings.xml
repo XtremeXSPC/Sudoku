@@ -2,12 +2,7 @@
 <resources>
     <string name="app_name">Sudoku</string>
     <string name="title_sudoku">Sudoku</string>
-    <string name="score_label">Score:</string>
-    <string name="score_label_default">Score: 0</string>
     <string name="score_format">Score: %d</string>
-    <string name="errors_label">Errors:</string>
-    <string name="errors_label_default">Errors: 0</string>
-    <string name="difficulty_placeholder">Difficulty</string>
     <string name="timer_default">00:00</string>
     <string name="undo_button">Undo</string>
     <string name="new_game_button">New Game</string>

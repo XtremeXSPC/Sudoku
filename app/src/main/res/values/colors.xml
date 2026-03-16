@@ -1,20 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-
     <!-- App Specific Colors -->
-    <color name="app_background">#FFF8E1</color> <!-- Main app background -->
-    <color name="text_brown_light">#6D4C41</color> <!-- Main text, fixed numbers -->
-
     <color name="status_bar_score_color">#008577</color>
     <color name="status_bar_text_color">#856A5D</color>
 
     <color name="background_cream">#FFF8E1</color> <!-- Main app background -->
     <color name="text_brown">#6D4C41</color> <!-- Main text, fixed numbers -->
     <color name="button_beige">#D7CCC8</color> <!-- Button background -->
-    <color name="button_background_color">#D7CCC8</color> <!-- Button background -->
-    <color name="button_border_color">#A1887F</color> <!-- Button border -->
 
     <color name="cell_highlight_color">#B2DFDB</color> <!-- Selected cell highlighting -->
     <color name="cell_background_dark_color">#E0E0E0</color> <!-- Dark background for 3x3 blocks (alternating) -->

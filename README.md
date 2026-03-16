@@ -54,6 +54,7 @@ Prerequisites: Android Studio (Koala+ recommended), JDK 21, Android SDK 36; the 
 
 - Quick build: `./gradlew assembleDebug`
 - Unit/UI tests: JVM regression tests live in `app/src/test`, and instrumented tests live in `app/src/androidTest`; run them with `./gradlew test` or `./gradlew connectedAndroidTest`.
+- Repository quality gate: `make verify` runs `test`, `assembleDebug`, and `lintDebug` with JDK 21 wired in automatically on macOS.
 - Code style: Kotlin uses the official style; Java follows standard Android conventions and lives alongside Compose code where needed.
 - More tips live in `docs/DEVELOPMENT.md`.
 

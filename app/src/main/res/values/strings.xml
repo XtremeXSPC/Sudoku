@@ -2,18 +2,13 @@
     <string name="app_name">Sudoku</string>
     <string name="title_sudoku">Sudoku</string>
 
-    <string name="score_label">Punteggio:</string>
-    <string name="score_label_default">Punteggio: 0</string>
     <string name="score_format">Punteggio: %d</string>
 
-    <string name="errors_label">Errori:</string>
-    <string name="errors_label_default">Errori: 0</string>
     <string name="errors_format">Errori: %d</string>
 
     <string name="difficulty_easy">Facile</string>
     <string name="difficulty_medium">Medio</string>
     <string name="difficulty_hard">Difficile</string>
-    <string name="difficulty_placeholder">Difficoltà: %s</string>
 
     <string name="timer_default">00:00</string>
 
@@ -29,6 +24,6 @@
 
     <string name="game_over_oops_title">Ops!</string>
     <string name="game_over_fail_message">La griglia è completa, ma non corretta. Ricontrolla i tuoi numeri.</string>
-    <string name="game_over_final_score_format">" Punteggio finale: %d"</string>
+    <string name="game_over_final_score_format">Punteggio finale: %d</string>
     <string name="close_button">Chiudi</string>
 </resources>
