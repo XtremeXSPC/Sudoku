@@ -37,6 +37,7 @@ public class SudokuViewModel extends ViewModel {
     private static final String STATE_IS_GAME_OVER_WITH_INCORRECT_BOARD = "isGameOverWithIncorrectBoard";
     private static final String STATE_COMPLETION_BONUS_APPLIED = "completionBonusApplied";
     private static final String STATE_AWARDED_COMPLETION_BONUS = "awardedCompletionBonus";
+    private static final String STATE_WIN_STATS_RECORDED = "winStatsRecorded";
 
     /* ----- LiveData Fields ----- */
     // The private MutableLiveData can be changed only within this ViewModel.
@@ -53,6 +54,7 @@ public class SudokuViewModel extends ViewModel {
     private int totalErrorsThisGame = 0;
     private boolean completionBonusApplied = false;
     private int awardedCompletionBonus = 0;
+    private boolean winStatsRecorded = false;
 
     /* ----- Timer related fields ----- */
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -297,6 +299,19 @@ public class SudokuViewModel extends ViewModel {
     }
 
     /**
+     * Marks win statistics as recorded for the current puzzle.
+     *
+     * @return {@code true} the first time the win is recorded, {@code false} on subsequent calls.
+     */
+    public boolean markWinStatsRecordedIfNeeded() {
+        if (winStatsRecorded) {
+            return false;
+        }
+        winStatsRecorded = true;
+        return true;
+    }
+
+    /**
      * Saves the current state of the ViewModel. Used for onSaveInstanceState in the Activity.
      *
      * @return A Pair containing the SudokuBoard state and a Bundle with other state information.
@@ -319,6 +334,7 @@ public class SudokuViewModel extends ViewModel {
                 Boolean.TRUE.equals(_isGameOverWithIncorrectBoard.getValue()));
         bundle.putBoolean(STATE_COMPLETION_BONUS_APPLIED, completionBonusApplied);
         bundle.putInt(STATE_AWARDED_COMPLETION_BONUS, awardedCompletionBonus);
+        bundle.putBoolean(STATE_WIN_STATS_RECORDED, winStatsRecorded);
 
         return new Pair<>(_sudokuBoard.getValue(), bundle);
     }
@@ -353,6 +369,7 @@ public class SudokuViewModel extends ViewModel {
         _score.setValue(bundleState.getInt(STATE_SCORE, 0));
         completionBonusApplied = bundleState.getBoolean(STATE_COMPLETION_BONUS_APPLIED, false);
         awardedCompletionBonus = bundleState.getInt(STATE_AWARDED_COMPLETION_BONUS, 0);
+        winStatsRecorded = bundleState.getBoolean(STATE_WIN_STATS_RECORDED, false);
 
         boolean restoredGameWon = bundleState.getBoolean(STATE_IS_GAME_WON, false);
         boolean restoredIncorrectBoard = bundleState.getBoolean(STATE_IS_GAME_OVER_WITH_INCORRECT_BOARD, false);
@@ -463,6 +480,7 @@ public class SudokuViewModel extends ViewModel {
         totalErrorsThisGame = 0;
         completionBonusApplied = false;
         awardedCompletionBonus = 0;
+        winStatsRecorded = false;
         _isGameWon.setValue(false);
         _isGameOverWithIncorrectBoard.setValue(false);
         chronometerBase = 0L;

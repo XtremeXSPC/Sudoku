@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Intent keys
     public static final String EXTRA_DIFFICULTY = "com.example.sudoku.DIFFICULTY";
+    public static final String EXTRA_RESUME_SAVED_GAME = "com.example.sudoku.RESUME_SAVED_GAME";
     // Bundle keys
     private static final String KEY_SUDOKU_BOARD_STATE = "sudokuBoardState";
     private static final String KEY_VIEW_MODEL_BUNDLE_STATE = "viewModelBundleState";
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     // Array to hold the grid TextViews for quick access.
     private final TextView[][] cellTextViews = new TextView[9][9];
     private final Button[] numberPadButtons = new Button[9];
+    private boolean shouldPersistOnStop = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +63,10 @@ public class MainActivity extends AppCompatActivity {
 
         // State restoration logic.
         if (savedInstanceState == null) {
-            // We explicitly tell the ViewModel to start a new game.
-            viewModel.startNewGame(resolveLaunchDifficulty());
+            if (!restoreSavedGameIfRequested()) {
+                // We explicitly tell the ViewModel to start a new game.
+                viewModel.startNewGame(resolveLaunchDifficulty());
+            }
 
         } else {
             // Restore state after process death. The ViewModel is newly created, so we need to restore its state.
@@ -114,6 +118,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        persistCurrentGameIfNeeded();
+    }
+
     /**
      * Maps a Difficulty enum to its corresponding user-friendly string resource ID.
      *
@@ -135,6 +145,20 @@ public class MainActivity extends AppCompatActivity {
     private SudokuBoard.Difficulty resolveLaunchDifficulty() {
         SudokuBoard.Difficulty difficulty = getIntent().getSerializableExtra(EXTRA_DIFFICULTY, SudokuBoard.Difficulty.class);
         return difficulty != null ? difficulty : SudokuBoard.Difficulty.MEDIUM;
+    }
+
+    private boolean restoreSavedGameIfRequested() {
+        if (!getIntent().getBooleanExtra(EXTRA_RESUME_SAVED_GAME, false)) {
+            return false;
+        }
+
+        SavedGameStore.SavedGame savedGame = SavedGameStore.load(this);
+        if (savedGame == null) {
+            return false;
+        }
+
+        viewModel.restoreState(savedGame.getBoard(), savedGame.getViewModelState());
+        return true;
     }
 
     /**
@@ -187,6 +211,9 @@ public class MainActivity extends AppCompatActivity {
      * Ends the current game session and returns to the HomeActivity to start a new one.
      */
     private void returnToHome() {
+        shouldPersistOnStop = false;
+        SavedGameStore.clear(this);
+
         // Create an Intent to return to HomeActivity.
         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
 
@@ -277,6 +304,8 @@ public class MainActivity extends AppCompatActivity {
         // Observe game won state
         viewModel.isGameWon().observe(this, isWon -> {
             if (isWon != null && isWon) {
+                recordWinStatsIfNeeded();
+                SavedGameStore.clear(this);
                 showGameOverDialog(getString(R.string.game_over_congratulations_title),
                         getString(R.string.game_over_success_message));
             }
@@ -285,6 +314,7 @@ public class MainActivity extends AppCompatActivity {
         // Observe game over state (incorrect board)
         viewModel.isGameOverWithIncorrectBoard().observe(this, isIncorrect -> {
             if (isIncorrect != null && isIncorrect) {
+                SavedGameStore.clear(this);
                 showGameOverDialog(getString(R.string.game_over_oops_title),
                         getString(R.string.game_over_fail_message));
             }
@@ -391,6 +421,39 @@ public class MainActivity extends AppCompatActivity {
         return board != null ? board.getCurrentDifficulty() : resolveLaunchDifficulty();
     }
 
+    private void recordWinStatsIfNeeded() {
+        SudokuBoard board = viewModel.getSudokuBoard().getValue();
+        if (board == null || !viewModel.markWinStatsRecordedIfNeeded()) {
+            return;
+        }
+
+        long elapsedTimeInMillis = Objects.requireNonNullElse(viewModel.getElapsedTimeInMillis().getValue(), 0L);
+        int finalScore = Objects.requireNonNullElse(viewModel.getScore().getValue(), 0);
+        GameStatsStore.recordWin(this, board.getCurrentDifficulty(), elapsedTimeInMillis, finalScore);
+    }
+
+    private void persistCurrentGameIfNeeded() {
+        if (!shouldPersistOnStop) {
+            SavedGameStore.clear(this);
+            return;
+        }
+
+        if (Boolean.TRUE.equals(viewModel.isGenerating().getValue())
+                || Boolean.TRUE.equals(viewModel.isGameWon().getValue())
+                || Boolean.TRUE.equals(viewModel.isGameOverWithIncorrectBoard().getValue())) {
+            SavedGameStore.clear(this);
+            return;
+        }
+
+        Pair<SudokuBoard, Bundle> state = viewModel.saveState();
+        if (state.first == null || state.second == null) {
+            SavedGameStore.clear(this);
+            return;
+        }
+
+        SavedGameStore.save(this, state.first, state.second);
+    }
+
     /**
      * Shows the in-game dialog for restarting quickly or returning to the home difficulty picker.
      */
@@ -399,7 +462,10 @@ public class MainActivity extends AppCompatActivity {
         new AlertDialog.Builder(this).setTitle(getString(R.string.new_game_dialog_title))
                 .setMessage(getString(R.string.new_game_same_difficulty_message, difficultyLabel))
                 .setPositiveButton(getString(R.string.restart_button),
-                        (dialog, which) -> viewModel.startNewGame(getCurrentDifficulty()))
+                        (dialog, which) -> {
+                            SavedGameStore.clear(this);
+                            viewModel.startNewGame(getCurrentDifficulty());
+                        })
                 .setNeutralButton(getString(R.string.back_to_home_button), (dialog, which) -> returnToHome())
                 .setNegativeButton(getString(R.string.cancel_button), null)
                 .show();
@@ -418,7 +484,10 @@ public class MainActivity extends AppCompatActivity {
 
         new AlertDialog.Builder(this).setTitle(title).setMessage(fullMessage)
                 .setPositiveButton(getString(R.string.play_again_button),
-                        (dialog, which) -> viewModel.startNewGame(getCurrentDifficulty()))
+                        (dialog, which) -> {
+                            SavedGameStore.clear(this);
+                            viewModel.startNewGame(getCurrentDifficulty());
+                        })
                 .setNeutralButton(getString(R.string.back_to_home_button), (dialog, which) -> returnToHome())
                 .setNegativeButton(getString(R.string.close_button), (dialog, which) -> dialog.dismiss())
                 .setCancelable(false) // Prevents closing with the back button until a choice is

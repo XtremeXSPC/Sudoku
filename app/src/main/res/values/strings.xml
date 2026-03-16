@@ -2,6 +2,9 @@
     <string name="app_name">Sudoku</string>
     <string name="title_sudoku">Sudoku</string>
     <string name="home_choose_difficulty">Scegli la difficoltà</string>
+    <string name="home_resume_game">Riprendi ultima partita</string>
+    <string name="home_start_new_game">Oppure inizia una nuova partita</string>
+    <string name="home_view_stats">Statistiche</string>
 
     <string name="score_format">Punteggio: %d</string>
 
@@ -34,4 +37,17 @@
     <string name="game_over_final_score_format">Punteggio finale: %d</string>
     <string name="game_over_message_with_score">%1$s\n\n%2$s</string>
     <string name="close_button">Chiudi</string>
+
+    <string name="stats_title">Statistiche</string>
+    <string name="stats_subtitle">Riepilogo locale delle partite completate.</string>
+    <string name="stats_overview_title">Panoramica</string>
+    <string name="stats_total_completed_label">Partite completate</string>
+    <string name="stats_fastest_completion_label">Completamento più rapido</string>
+    <string name="stats_best_score_label">Punteggio migliore</string>
+    <string name="stats_by_difficulty_title">Dettaglio per difficoltà</string>
+    <string name="stats_difficulty_wins_label">Vittorie</string>
+    <string name="stats_difficulty_best_time_label">Tempo migliore</string>
+    <string name="stats_difficulty_best_score_label">Punteggio migliore</string>
+    <string name="stats_empty">Nessuna partita completata ancora.</string>
+    <string name="stats_not_available">--</string>
 </resources>

@@ -2,7 +2,7 @@
 
 ![Java](https://img.shields.io/badge/language-Java-orange.svg) ![Platform](https://img.shields.io/badge/platform-Android-green.svg) ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-An Android Sudoku app with a Compose-based difficulty selector (`HomeActivity`) that launches a Java + ViewBinding game screen (`MainActivity`). The game logic lives in an MVVM stack powered by `SudokuViewModel`, `LiveData`, and the `SudokuBoard` model, keeping the UI responsive while puzzles are generated on a background thread.
+An Android Sudoku app with a Compose-based home flow (`HomeActivity` + `StatsActivity`) that launches a Java + ViewBinding game screen (`MainActivity`). The game logic lives in an MVVM stack powered by `SudokuViewModel`, `LiveData`, and the `SudokuBoard` model, keeping the UI responsive while puzzles are generated on a background thread.
 
 ## Screenshots
 
@@ -13,15 +13,17 @@ An Android Sudoku app with a Compose-based difficulty selector (`HomeActivity`) 
 ## Features
 
 - **Fresh puzzles per game**: Generates solvable boards with a uniqueness check before play starts.
-- **Difficulty selector**: Easy, Medium, or Hard chosen on the Compose home screen.
+- **Difficulty selector + resume**: Start a new Easy, Medium, or Hard puzzle, or resume the latest in-progress game from the Compose home screen.
 - **Real-time validation**: Highlights wrong entries immediately; per-move scoring and an error counter keep feedback clear.
 - **Timer and scoring**: Time-based bonus plus difficulty bonuses; score never drops below zero.
-- **Undo support**: Revert the latest user move while keeping score and error counters in sync.
+- **Undo support**: Revert the latest user move while keeping score in sync; the error counter remains historical across the whole game.
+- **Local stats**: Tracks wins, best time, and best score per difficulty without introducing accounts or cloud state.
 - **Config-change safe**: Board state, selection, timer, and counters survive rotations and process death via the ViewModel bundle.
+- **App-close safe**: The latest in-progress game is stored locally and can be resumed after the app is fully closed.
 
 ## Architecture in brief
 
-- **UI flow**: `HomeActivity` (Compose difficulty picker) ➜ `MainActivity` (ViewBinding screen + overlayed `TextView`s for numbers).
+- **UI flow**: `HomeActivity` (Compose home), optional `StatsActivity` (local statistics), then `MainActivity` (ViewBinding screen + overlayed `TextView`s for numbers).
 - **Rendering**: `SudokuGridView` draws the grid; `HighlightOverlayView` draws selection/highlight layers.
 - **State + logic**: `SudokuViewModel` owns UI state with `LiveData`, delegates rules and move history to `SudokuBoard`/`SudokuCell`.
 - **Background work**: Puzzle generation runs on a single-thread executor; a `Handler` drives the in-app timer on the main thread.
@@ -31,8 +33,11 @@ An Android Sudoku app with a Compose-based difficulty selector (`HomeActivity`) 
 
 ```
 app/src/main/java/com/example/sudoku
-├── HomeActivity.kt            # Compose launcher that passes the chosen difficulty to MainActivity
+├── GameStatsStore.java        # SharedPreferences-backed local wins / best time / best score tracking
+├── HomeActivity.kt            # Compose launcher with resume, difficulty selection, and stats entry point
 ├── MainActivity.java          # ViewBinding UI, observers, dialogs, keypad, highlight overlay hookup
+├── SavedGameStore.java        # SharedPreferences-backed persistence for the latest in-progress game
+├── StatsActivity.kt           # Compose statistics screen with overview and per-difficulty breakdown
 ├── SudokuGridView.java        # Custom view that draws the 9x9 board background and grid lines
 ├── HighlightOverlayView.java  # Selection, row/column, and block highlighting overlay
 ├── SudokuBoard.java           # Core logic: puzzle generation, validation, scoring, move history
@@ -53,6 +58,7 @@ Prerequisites: Android Studio (Koala+ recommended), JDK 21, Android SDK 36; the 
 ## Development and testing
 
 - Quick build: `./gradlew assembleDebug`
+- Release build check: `./gradlew assembleRelease`
 - Unit/UI tests: JVM regression tests live in `app/src/test`, and instrumented tests live in `app/src/androidTest`; run them with `./gradlew test` or `./gradlew connectedAndroidTest`.
 - Repository quality gate: `make verify` runs `test`, `assembleDebug`, and `lintDebug` with JDK 21 wired in automatically on macOS.
 - Code style: Kotlin uses the official style; Java follows standard Android conventions and lives alongside Compose code where needed.

@@ -22,6 +22,12 @@
         </activity>
 
         <activity
+            android:name=".StatsActivity"
+            android:exported="false"
+            android:label="@string/stats_title"
+            android:parentActivityName=".HomeActivity" />
+
+        <activity
             android:name=".MainActivity"
             android:exported="false"
             android:theme="@style/Theme.Sudoku">
