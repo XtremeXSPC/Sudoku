@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -64,25 +65,31 @@ fun DifficultyScreen(onDifficultySelected: (SudokuBoard.Difficulty) -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-                text = "Sudoku",
+                text = stringResource(R.string.app_name),
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextBrown,
-                modifier = Modifier.padding(bottom = 64.dp)
+                modifier = Modifier.padding(bottom = 16.dp)
+        )
+        Text(
+                text = stringResource(R.string.home_choose_difficulty),
+                fontSize = 18.sp,
+                color = TextBrown,
+                modifier = Modifier.padding(bottom = 48.dp)
         )
 
         DifficultyButton(
-                text = "Facile",
+                text = stringResource(R.string.difficulty_easy),
                 onClick = { onDifficultySelected(SudokuBoard.Difficulty.EASY) }
         )
         Spacer(modifier = Modifier.height(16.dp))
         DifficultyButton(
-                text = "Medio",
+                text = stringResource(R.string.difficulty_medium),
                 onClick = { onDifficultySelected(SudokuBoard.Difficulty.MEDIUM) }
         )
         Spacer(modifier = Modifier.height(16.dp))
         DifficultyButton(
-                text = "Difficile",
+                text = stringResource(R.string.difficulty_hard),
                 onClick = { onDifficultySelected(SudokuBoard.Difficulty.HARD) }
         )
     }

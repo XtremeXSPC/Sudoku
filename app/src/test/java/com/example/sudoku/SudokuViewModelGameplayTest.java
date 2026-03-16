@@ -78,6 +78,23 @@ public class SudokuViewModelGameplayTest {
         assertEquals(0, viewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
     }
 
+    @Test
+    public void clearSelectedCell_clearsEditableValueWithoutChangingScore() throws Exception {
+        SudokuViewModel viewModel = new SudokuViewModel();
+        viewModel.restoreState(createBoardWithOpenCells(SudokuBoard.Difficulty.EASY, new int[][] { { 0, 0 }, { 0, 1 } }),
+                createBundle(0, 0, 0));
+
+        viewModel.inputNumber(SOLUTION[0][0]);
+
+        assertEquals(Integer.valueOf(10), viewModel.getScore().getValue());
+        assertEquals(SOLUTION[0][0], viewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
+
+        assertTrue(viewModel.clearSelectedCell());
+        assertEquals(Integer.valueOf(10), viewModel.getScore().getValue());
+        assertEquals(0, viewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
+        assertTrue(viewModel.getSudokuBoard().getValue().getCell(0, 0).isCorrect());
+    }
+
     @Test(timeout = 30000)
     public void startNewGameInQuickSuccession_keepsLatestDifficulty() throws Exception {
         SudokuViewModel viewModel = new SudokuViewModel();

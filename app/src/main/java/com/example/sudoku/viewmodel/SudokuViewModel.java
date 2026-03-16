@@ -269,6 +269,38 @@ public class SudokuViewModel extends ViewModel {
     }
 
     /**
+     * Clears the currently selected editable cell. If the cell contains a value, the operation follows the same path as
+     * numeric input with {@code 0}; if it only contains notes, the notes are removed in place.
+     *
+     * @return {@code true} if something was cleared, {@code false} otherwise.
+     */
+    public boolean clearSelectedCell() {
+        SudokuBoard board = _sudokuBoard.getValue();
+        Pair<Integer, Integer> selection = _selectedCell.getValue();
+        if (board == null || selection == null) {
+            return false;
+        }
+
+        SudokuCell cell = board.getCell(selection.first, selection.second);
+        if (cell == null || cell.isFixed()) {
+            return false;
+        }
+
+        if (cell.getValue() != 0) {
+            inputNumber(0);
+            return true;
+        }
+
+        if (!cell.getNotes().isEmpty()) {
+            cell.clearNotes();
+            _sudokuBoard.setValue(board);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Saves the current state of the ViewModel. Used for onSaveInstanceState in the Activity.
      *
      * @return A Pair containing the SudokuBoard state and a Bundle with other state information.

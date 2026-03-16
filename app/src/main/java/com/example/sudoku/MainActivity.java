@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Array to hold the grid TextViews for quick access.
     private final TextView[][] cellTextViews = new TextView[9][9];
+    private final Button[] numberPadButtons = new Button[9];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,8 +65,7 @@ public class MainActivity extends AppCompatActivity {
             viewModel.startNewGame(resolveLaunchDifficulty());
 
         } else {
-            // Restore state after process death. The ViewModel is newly created, so we need to
-            // restore its state.
+            // Restore state after process death. The ViewModel is newly created, so we need to restore its state.
             SudokuBoard boardState = savedInstanceState.getParcelable(KEY_SUDOKU_BOARD_STATE, SudokuBoard.class);
             Bundle viewModelBundle = savedInstanceState.getBundle(KEY_VIEW_MODEL_BUNDLE_STATE);
 
@@ -87,14 +87,12 @@ public class MainActivity extends AppCompatActivity {
                 .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                     @Override
                     public void onGlobalLayout() {
-                        // It's crucial to remove the listener to prevent it from being called
-                        // multiple times.
+                        // It's crucial to remove the listener to prevent it from being called multiple times.
                         binding.sudokuContainer.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
                         initializeSudokuGridOverlay(binding.sudokuContainer.getWidth() / 9);
 
-                        // Force an initial UI update based on ViewModel data, especially useful
-                        // after a rotation.
+                        // Force an initial UI update based on ViewModel data, especially useful after a rotation.
                         if (viewModel.getSudokuBoard().getValue() != null && cellTextViews[0][0] != null) {
                             updateGridUI(viewModel.getSudokuBoard().getValue());
                         }
@@ -164,19 +162,25 @@ public class MainActivity extends AppCompatActivity {
             button.setTextColor(ContextCompat.getColor(this, R.color.text_brown));
 
             binding.numberPad.addView(button);
+            numberPadButtons[i - 1] = button;
         }
     }
 
     /**
-     * Initializes the action buttons (Undo, New Game).
+     * Initializes the action buttons (Clear, Undo, New Game).
      */
     private void setupActionButtons() {
+        binding.clearButton.setOnClickListener(v -> {
+            if (!viewModel.clearSelectedCell()) {
+                Toast.makeText(this, getString(R.string.nothing_to_clear), Toast.LENGTH_SHORT).show();
+            }
+        });
         binding.undoButton.setOnClickListener(v -> {
             if (!viewModel.undoLastMove()) {
                 Toast.makeText(this, getString(R.string.no_moves_to_undo), Toast.LENGTH_SHORT).show();
             }
         });
-        binding.newGameButton.setOnClickListener(v -> returnToHome());
+        binding.newGameButton.setOnClickListener(v -> showNewGameOptionsDialog());
     }
 
     /**
@@ -234,6 +238,7 @@ public class MainActivity extends AppCompatActivity {
         if (viewModel.getSelectedCell().getValue() != null) {
             updateHighlightOverlay(viewModel.getSelectedCell().getValue());
         }
+        refreshInteractiveControls();
     }
 
     /**
@@ -246,10 +251,14 @@ public class MainActivity extends AppCompatActivity {
                 binding.difficultyText.setText(getDifficultyStringRes(board.getCurrentDifficulty()));
                 updateGridUI(board);
             }
+            refreshInteractiveControls();
         });
 
         // Observe cell selection changes
-        viewModel.getSelectedCell().observe(this, this::updateHighlightOverlay);
+        viewModel.getSelectedCell().observe(this, selection -> {
+            updateHighlightOverlay(selection);
+            refreshInteractiveControls();
+        });
 
         // Observe timer
         viewModel.getElapsedTimeInMillis().observe(this, timeInMillis -> {
@@ -287,15 +296,12 @@ public class MainActivity extends AppCompatActivity {
                 binding.progressBar.setVisibility(View.VISIBLE);
                 binding.sudokuContainer.setVisibility(View.INVISIBLE);
                 binding.numberPad.setVisibility(View.INVISIBLE);
-                binding.undoButton.setEnabled(false);
-                binding.newGameButton.setEnabled(false);
             } else {
                 binding.progressBar.setVisibility(View.GONE);
                 binding.sudokuContainer.setVisibility(View.VISIBLE);
                 binding.numberPad.setVisibility(View.VISIBLE);
-                binding.undoButton.setEnabled(true);
-                binding.newGameButton.setEnabled(true);
             }
+            refreshInteractiveControls();
         });
     }
 
@@ -346,19 +352,57 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Shows a dialog to choose the difficulty and start a new game.
+     * Refreshes keypad and action button states based on selection and loading state.
      */
-    private void showNewGameDialog() {
+    private void refreshInteractiveControls() {
+        boolean isGenerating = Boolean.TRUE.equals(viewModel.isGenerating().getValue());
+        SudokuCell selectedEditableCell = getSelectedEditableCell();
+        boolean hasEditableSelection = selectedEditableCell != null;
+        boolean canClear = hasEditableSelection
+                && (selectedEditableCell.getValue() != 0 || !selectedEditableCell.getNotes().isEmpty());
+
+        for (Button button : numberPadButtons) {
+            if (button != null) {
+                button.setEnabled(!isGenerating && hasEditableSelection);
+            }
+        }
+
+        binding.clearButton.setEnabled(!isGenerating && canClear);
+        binding.undoButton.setEnabled(!isGenerating);
+        binding.newGameButton.setEnabled(!isGenerating);
+    }
+
+    private SudokuCell getSelectedEditableCell() {
+        SudokuBoard board = viewModel.getSudokuBoard().getValue();
+        Pair<Integer, Integer> selection = viewModel.getSelectedCell().getValue();
+        if (board == null || selection == null) {
+            return null;
+        }
+
+        SudokuCell cell = board.getCell(selection.first, selection.second);
+        if (cell == null || cell.isFixed()) {
+            return null;
+        }
+        return cell;
+    }
+
+    private SudokuBoard.Difficulty getCurrentDifficulty() {
+        SudokuBoard board = viewModel.getSudokuBoard().getValue();
+        return board != null ? board.getCurrentDifficulty() : resolveLaunchDifficulty();
+    }
+
+    /**
+     * Shows the in-game dialog for restarting quickly or returning to the home difficulty picker.
+     */
+    private void showNewGameOptionsDialog() {
+        String difficultyLabel = getString(getDifficultyStringRes(getCurrentDifficulty()));
         new AlertDialog.Builder(this).setTitle(getString(R.string.new_game_dialog_title))
-                .setMessage(getString(R.string.new_game_dialog_message))
-                // The three buttons now use lambdas for their onClick logic.
-                .setPositiveButton(getString(R.string.difficulty_easy),
-                        (dialog, which) -> viewModel.startNewGame(SudokuBoard.Difficulty.EASY))
-                .setNeutralButton(getString(R.string.difficulty_medium),
-                        (dialog, which) -> viewModel.startNewGame(SudokuBoard.Difficulty.MEDIUM))
-                .setNegativeButton(getString(R.string.difficulty_hard),
-                        (dialog, which) -> viewModel.startNewGame(SudokuBoard.Difficulty.HARD))
-                .setCancelable(true).show();
+                .setMessage(getString(R.string.new_game_same_difficulty_message, difficultyLabel))
+                .setPositiveButton(getString(R.string.restart_button),
+                        (dialog, which) -> viewModel.startNewGame(getCurrentDifficulty()))
+                .setNeutralButton(getString(R.string.back_to_home_button), (dialog, which) -> returnToHome())
+                .setNegativeButton(getString(R.string.cancel_button), null)
+                .show();
     }
 
     /**
@@ -369,10 +413,13 @@ public class MainActivity extends AppCompatActivity {
      */
     private void showGameOverDialog(String title, String message) {
         int finalScore = Objects.requireNonNullElse(viewModel.getScore().getValue(), 0);
-        String fullMessage = message + " " + getString(R.string.game_over_final_score_format, finalScore);
+        String fullMessage = getString(R.string.game_over_message_with_score, message,
+                getString(R.string.game_over_final_score_format, finalScore));
 
         new AlertDialog.Builder(this).setTitle(title).setMessage(fullMessage)
-                .setPositiveButton(getString(R.string.new_game_button), (dialog, which) -> showNewGameDialog())
+                .setPositiveButton(getString(R.string.play_again_button),
+                        (dialog, which) -> viewModel.startNewGame(getCurrentDifficulty()))
+                .setNeutralButton(getString(R.string.back_to_home_button), (dialog, which) -> returnToHome())
                 .setNegativeButton(getString(R.string.close_button), (dialog, which) -> dialog.dismiss())
                 .setCancelable(false) // Prevents closing with the back button until a choice is
                 // made

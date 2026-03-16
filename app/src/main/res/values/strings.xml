@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Sudoku</string>
     <string name="title_sudoku">Sudoku</string>
+    <string name="home_choose_difficulty">Scegli la difficoltà</string>
 
     <string name="score_format">Punteggio: %d</string>
 
@@ -12,12 +13,18 @@
 
     <string name="timer_default">00:00</string>
 
+    <string name="clear_button">Cancella</string>
     <string name="undo_button">Annulla</string>
     <string name="new_game_button">Nuova Partita</string>
     <string name="no_moves_to_undo">Nessuna mossa da annullare</string>
+    <string name="nothing_to_clear">Niente da cancellare</string>
 
     <string name="new_game_dialog_title">Nuova partita</string>
-    <string name="new_game_dialog_message">Scegli la difficoltà:</string>
+    <string name="new_game_same_difficulty_message">Vuoi ricominciare in modalità %1$s o tornare alla home per scegliere un’altra difficoltà?</string>
+    <string name="restart_button">Ricomincia</string>
+    <string name="play_again_button">Gioca ancora</string>
+    <string name="back_to_home_button">Home</string>
+    <string name="cancel_button">Annulla</string>
 
     <string name="game_over_congratulations_title">Congratulazioni!</string>
     <string name="game_over_success_message">Hai completato il Sudoku correttamente!</string>
@@ -25,5 +32,6 @@
     <string name="game_over_oops_title">Ops!</string>
     <string name="game_over_fail_message">La griglia è completa, ma non corretta. Ricontrolla i tuoi numeri.</string>
     <string name="game_over_final_score_format">Punteggio finale: %d</string>
+    <string name="game_over_message_with_score">%1$s\n\n%2$s</string>
     <string name="close_button">Chiudi</string>
 </resources>
