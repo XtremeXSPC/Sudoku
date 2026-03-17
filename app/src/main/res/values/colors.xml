@@ -1,43 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Base Semantic Colors (Light Theme) -->
-    <color name="background">#F5F0EB</color>
-    <color name="onBackground">#1A1714</color>
-    
-    <color name="surface">#F5F0EB</color>
-    <color name="onSurface">#1A1714</color>
-    
-    <color name="surfaceVariant">#EBE5DF</color>
-    <color name="onSurfaceVariant">#4D4843</color>
+    <color name="background">#F2EBE0</color>
+    <color name="onBackground">#1A1410</color>
 
-    <color name="primary">#C17A5A</color> <!-- Warm amber / dusty terracotta -->
+    <color name="surface">#F4F3F1</color>
+    <color name="onSurface">#1A1410</color>
+
+    <color name="surfaceVariant">#E8E5E2</color>
+    <color name="onSurfaceVariant">#4A4038</color>
+
+    <color name="primary">#C46632</color> <!-- Warm burnt orange -->
     <color name="onPrimary">#FFFFFF</color>
-    
-    <color name="secondary">#59747B</color> <!-- Muted teal / cool slate -->
+
+    <color name="secondary">#9A7040</color> <!-- Golden caramel — warm amber accent -->
     <color name="onSecondary">#FFFFFF</color>
-    
-    <color name="error">#C85A5A</color> <!-- Soft red -->
+
+    <color name="error">#C85A5A</color>
     <color name="onError">#FFFFFF</color>
     <color name="errorContainer">#F9DFDF</color>
     <color name="onErrorContainer">#3D1010</color>
-    
-    <color name="outline">#D1CBC5</color>
-    <color name="outlineVariant">#E2DDD8</color>
-    
-    <color name="success">#558957</color> <!-- Soft success green -->
+
+    <color name="outline">#C9BFB3</color>
+    <color name="outlineVariant">#DDD5CA</color>
+
+    <color name="success">#558957</color>
     <color name="successContainer">#DDF1DE</color>
 
-    <!-- Specific UI Colors based on roles for the Grid -->
+    <!-- Grid -->
     <color name="cell_background_light">@color/surface</color>
     <color name="cell_background_dark">@color/surfaceVariant</color>
-    
-    <color name="grid_line_thin">#C9C1B8</color>
-    <color name="grid_line_thick">#9F9287</color>
+
+    <color name="grid_line_thin">#C0B8AE</color>
+    <color name="grid_line_thick">#9A8875</color>
 
     <!-- Selection & Highlights -->
-    <color name="highlight_selected_cell">#40C17A5A</color> <!-- 25% primary tint -->
-    <color name="highlight_row_col">#1AC17A5A</color> <!-- 10% primary tint for related cells -->
-    
+    <color name="highlight_selected_cell">#4CC46632</color> <!-- ~30% primary -->
+    <color name="highlight_row_col">#20C46632</color>       <!-- ~12% primary -->
+    <color name="highlight_block">#169A7040</color>         <!-- ~9% secondary -->
+    <color name="highlight_same_value">#2A9A7040</color>    <!-- ~16% secondary -->
+    <color name="pause_scrim">#C0F2EBE0</color>
+
     <!-- Timer & Text -->
     <color name="timer_text">@color/onSurfaceVariant</color>
+
+    <!-- Ripple overlays -->
+    <color name="ripple_action_neutral">#29000000</color>
+    <color name="ripple_action_accent">#40FFFFFF</color>
 </resources>

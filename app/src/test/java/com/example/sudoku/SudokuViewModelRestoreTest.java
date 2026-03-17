@@ -40,6 +40,7 @@ public class SudokuViewModelRestoreTest {
     private static final String STATE_SCORE = "score";
     private static final String STATE_IS_GAME_WON = "isGameWon";
     private static final String STATE_IS_GAME_OVER_WITH_INCORRECT_BOARD = "isGameOverWithIncorrectBoard";
+    private static final String STATE_IS_PAUSED = "isPaused";
     private static final String STATE_COMPLETION_BONUS_APPLIED = "completionBonusApplied";
     private static final String STATE_AWARDED_COMPLETION_BONUS = "awardedCompletionBonus";
 
@@ -163,6 +164,42 @@ public class SudokuViewModelRestoreTest {
     }
 
     /**
+     * A paused game must survive save/restore without the timer advancing until resumed again.
+     */
+    @Test
+    public void saveAndRestore_preservesPausedStateAndFrozenTimer() throws Exception {
+        SudokuViewModel originalViewModel = new SudokuViewModel();
+        Bundle originalBundle = createBundle(0, 1, 0, 0, 0, false, false, false, false, 0);
+        originalBundle.putBoolean(STATE_IS_TIMER_RUNNING, true);
+        originalBundle.putLong(STATE_ELAPSED_TIME_IN_MILLIS, 42_000L);
+        originalBundle.putLong(STATE_CHRONOMETER_BASE, 1L);
+        originalViewModel.restoreState(createBoardWithOnePastErrorAndOneOpenCell(), originalBundle);
+
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(2, TimeUnit.SECONDS);
+        assertTrue(originalViewModel.togglePause());
+
+        long pausedElapsedTime = originalViewModel.getElapsedTimeInMillis().getValue();
+        Pair<SudokuBoard, Bundle> savedState = originalViewModel.saveState();
+
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(5, TimeUnit.MINUTES);
+
+        SudokuViewModel restoredViewModel = new SudokuViewModel();
+        restoredViewModel.restoreState(savedState.first, savedState.second);
+
+        assertEquals(Boolean.TRUE, restoredViewModel.isPaused().getValue());
+        assertEquals(Long.valueOf(pausedElapsedTime), restoredViewModel.getElapsedTimeInMillis().getValue());
+
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(2, TimeUnit.SECONDS);
+        assertEquals(Long.valueOf(pausedElapsedTime), restoredViewModel.getElapsedTimeInMillis().getValue());
+
+        assertTrue(restoredViewModel.togglePause());
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(2, TimeUnit.SECONDS);
+
+        long resumedElapsedTime = restoredViewModel.getElapsedTimeInMillis().getValue();
+        assertTrue(resumedElapsedTime > pausedElapsedTime);
+    }
+
+    /**
      * Builds a board with one historical error already committed and one open cell for the next move.
      */
     private SudokuBoard createBoardWithOnePastErrorAndOneOpenCell() throws Exception {
@@ -261,6 +298,7 @@ public class SudokuViewModelRestoreTest {
         bundle.putInt(STATE_SCORE, score);
         bundle.putBoolean(STATE_IS_GAME_WON, isGameWon);
         bundle.putBoolean(STATE_IS_GAME_OVER_WITH_INCORRECT_BOARD, isIncorrectBoard);
+        bundle.putBoolean(STATE_IS_PAUSED, false);
         bundle.putBoolean(STATE_COMPLETION_BONUS_APPLIED, completionBonusApplied);
         bundle.putInt(STATE_AWARDED_COMPLETION_BONUS, awardedCompletionBonus);
         return bundle;

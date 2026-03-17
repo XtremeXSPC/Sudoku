@@ -13,10 +13,14 @@
     <string name="timer_default">00:00</string>
     <string name="clear_button">Clear</string>
     <string name="undo_button">Undo</string>
-    <string name="new_game_button">New Game</string>
+    <string name="pause_button">Pause</string>
+    <string name="resume_button">Resume</string>
+    <string name="new_game_button">New\nGame</string>
     <string name="no_moves_to_undo">No moves to undo</string>
     <string name="nothing_to_clear">Nothing to clear</string>
     <string name="puzzle_generation_failed">Could not generate a new puzzle. Please try again.</string>
+    <string name="paused_title">Paused</string>
+    <string name="paused_message">The timer and controls stay frozen until you resume the puzzle.</string>
     <string name="new_game_dialog_title">New game</string>
     <string name="new_game_same_difficulty_message">Do you want to restart on %1$s or go back home to choose another difficulty?</string>
     <string name="restart_button">Restart</string>
@@ -30,6 +34,7 @@
     <string name="difficulty_medium_hint">A balanced challenge for a full session.</string>
     <string name="difficulty_hard_hint">For players who want a truly demanding puzzle.</string>
     <string name="loading_puzzle">Preparing puzzle…</string>
+    <string name="streak_multiplier_format">×%.1f</string>
     <string name="game_over_congratulations_title">Congratulations!</string>
     <string name="game_over_success_message">You have completed the Sudoku correctly!</string>
     <string name="game_over_oops_title">Oops!</string>

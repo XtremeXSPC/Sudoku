@@ -1,36 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Base Semantic Colors (Dark Theme) -->
-    <color name="background">#1C1917</color>
-    <color name="onBackground">#F5F0EB</color>
-    
-    <color name="surface">#292524</color>
-    <color name="onSurface">#F5F0EB</color>
-    
-    <color name="surfaceVariant">#36302E</color>
-    <color name="onSurfaceVariant">#DCD5D1</color>
+    <color name="background">#1C1510</color>
+    <color name="onBackground">#F2EBE0</color>
 
-    <color name="primary">#D18A6A</color> <!-- Lighter dusty terracotta for dark mode -->
+    <color name="surface">#282220</color>
+    <color name="onSurface">#F2EBE0</color>
+
+    <color name="surfaceVariant">#342C29</color>
+    <color name="onSurfaceVariant">#D9CFC8</color>
+
+    <color name="primary">#D68A58</color> <!-- Lighter burnt orange for dark backgrounds -->
     <color name="onPrimary">#3E1B0D</color>
-    
-    <color name="secondary">#7A9A9F</color>
-    <color name="onSecondary">#182B30</color>
-    
+
+    <color name="secondary">#C29060</color> <!-- Warm caramel on dark -->
+    <color name="onSecondary">#1E1205</color>
+
     <color name="error">#D87A7A</color>
     <color name="onError">#4A1111</color>
     <color name="errorContainer">#6A1E1E</color>
     <color name="onErrorContainer">#FCE8E8</color>
-    
-    <color name="outline">#5B5450</color>
-    <color name="outlineVariant">#4A4340</color>
-    
+
+    <color name="outline">#574C43</color>
+    <color name="outlineVariant">#463B32</color>
+
     <color name="success">#75A977</color>
     <color name="successContainer">#1E3B20</color>
 
-    <color name="grid_line_thin">#5D5550</color>
-    <color name="grid_line_thick">#7F756F</color>
+    <!-- Grid -->
+    <color name="grid_line_thin">#584D45</color>
+    <color name="grid_line_thick">#7A6B5E</color>
 
     <!-- Selection & Highlights -->
-    <color name="highlight_selected_cell">#40D18A6A</color>
-    <color name="highlight_row_col">#1AD18A6A</color>
+    <color name="highlight_selected_cell">#4CD68A58</color> <!-- ~30% primary -->
+    <color name="highlight_row_col">#22D68A58</color>       <!-- ~13% primary -->
+    <color name="highlight_block">#20C29060</color>         <!-- ~12% secondary -->
+    <color name="highlight_same_value">#35C29060</color>    <!-- ~21% secondary -->
+    <color name="pause_scrim">#C0282220</color>
 </resources>

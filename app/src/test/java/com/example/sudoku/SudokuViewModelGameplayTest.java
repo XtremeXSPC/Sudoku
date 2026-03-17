@@ -39,6 +39,7 @@ public class SudokuViewModelGameplayTest {
     private static final String STATE_SCORE = "score";
     private static final String STATE_IS_GAME_WON = "isGameWon";
     private static final String STATE_IS_GAME_OVER_WITH_INCORRECT_BOARD = "isGameOverWithIncorrectBoard";
+    private static final String STATE_IS_PAUSED = "isPaused";
     private static final String STATE_COMPLETION_BONUS_APPLIED = "completionBonusApplied";
     private static final String STATE_AWARDED_COMPLETION_BONUS = "awardedCompletionBonus";
 
@@ -106,6 +107,33 @@ public class SudokuViewModelGameplayTest {
         assertEquals(Integer.valueOf(10), viewModel.getScore().getValue());
         assertEquals(0, viewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
         assertTrue(viewModel.getSudokuBoard().getValue().getCell(0, 0).isCorrect());
+    }
+
+    /**
+     * Pausing must freeze gameplay input until the player explicitly resumes.
+     */
+    @Test
+    public void pauseBlocksGameplayInputUntilResumed() throws Exception {
+        SudokuViewModel viewModel = new SudokuViewModel();
+        viewModel.restoreState(createBoardWithOpenCells(SudokuBoard.Difficulty.MEDIUM, new int[][] { { 0, 0 }, { 0, 1 } }),
+                createBundle(0, 0, 0));
+
+        assertTrue(viewModel.togglePause());
+        assertEquals(Boolean.TRUE, viewModel.isPaused().getValue());
+
+        viewModel.inputNumber(SOLUTION[0][0]);
+
+        assertEquals(0, viewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
+        assertFalse(viewModel.clearSelectedCell());
+        assertFalse(viewModel.undoLastMove());
+
+        assertTrue(viewModel.togglePause());
+        assertEquals(Boolean.FALSE, viewModel.isPaused().getValue());
+
+        viewModel.inputNumber(SOLUTION[0][0]);
+
+        assertEquals(SOLUTION[0][0], viewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
+        assertEquals(Integer.valueOf(15), viewModel.getScore().getValue());
     }
 
     /**
@@ -225,6 +253,7 @@ public class SudokuViewModelGameplayTest {
         bundle.putInt(STATE_SCORE, score);
         bundle.putBoolean(STATE_IS_GAME_WON, false);
         bundle.putBoolean(STATE_IS_GAME_OVER_WITH_INCORRECT_BOARD, false);
+        bundle.putBoolean(STATE_IS_PAUSED, false);
         bundle.putBoolean(STATE_COMPLETION_BONUS_APPLIED, false);
         bundle.putInt(STATE_AWARDED_COMPLETION_BONUS, 0);
         return bundle;

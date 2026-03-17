@@ -36,9 +36,11 @@ public class SudokuViewModel extends ViewModel {
     private static final String STATE_SCORE = "score";
     private static final String STATE_IS_GAME_WON = "isGameWon";
     private static final String STATE_IS_GAME_OVER_WITH_INCORRECT_BOARD = "isGameOverWithIncorrectBoard";
+    private static final String STATE_IS_PAUSED = "isPaused";
     private static final String STATE_COMPLETION_BONUS_APPLIED = "completionBonusApplied";
     private static final String STATE_AWARDED_COMPLETION_BONUS = "awardedCompletionBonus";
     private static final String STATE_WIN_STATS_RECORDED = "winStatsRecorded";
+    private static final String STATE_CURRENT_STREAK = "currentStreak";
 
     /* ----- LiveData Fields ----- */
     // The private MutableLiveData can be changed only within this ViewModel.
@@ -49,14 +51,18 @@ public class SudokuViewModel extends ViewModel {
     private final MutableLiveData<Integer> _score = new MutableLiveData<>(0);
     private final MutableLiveData<Boolean> _isGameWon = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _isGameOverWithIncorrectBoard = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> _isPaused = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _isGenerating = new MutableLiveData<>(false);
     private final MutableLiveData<Integer> _generationErrorMessage = new MutableLiveData<>();
+    private final MutableLiveData<Integer> _currentStreak = new MutableLiveData<>(0);
     // Tracks cumulative mistakes committed in the current game. Undo restores the board state,
     // but it does not erase mistakes that were already made.
     private int totalErrorsThisGame = 0;
     private boolean completionBonusApplied = false;
     private int awardedCompletionBonus = 0;
     private boolean winStatsRecorded = false;
+    // Consecutive correct moves without an error; resets on error or undo.
+    private int currentStreak = 0;
 
     /* ----- Timer related fields ----- */
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -121,6 +127,13 @@ public class SudokuViewModel extends ViewModel {
     }
 
     /**
+     * @return Flag indicating gameplay is paused and inputs should be ignored until resumed.
+     */
+    public LiveData<Boolean> isPaused() {
+        return _isPaused;
+    }
+
+    /**
      * @return Flag indicating background puzzle generation is in progress.
      */
     public LiveData<Boolean> isGenerating() {
@@ -132,6 +145,13 @@ public class SudokuViewModel extends ViewModel {
      */
     public LiveData<Integer> getGenerationErrorMessage() {
         return _generationErrorMessage;
+    }
+
+    /**
+     * @return Number of consecutive correct moves without an error. Resets to 0 on any error or undo.
+     */
+    public LiveData<Integer> getCurrentStreak() {
+        return _currentStreak;
     }
 
     /**
@@ -213,7 +233,33 @@ public class SudokuViewModel extends ViewModel {
      * @param col The column of the selected cell (0-8).
      */
     public void selectCell(int row, int col) {
+        if (Boolean.TRUE.equals(_isPaused.getValue())) {
+            return;
+        }
         _selectedCell.setValue(new Pair<>(row, col));
+    }
+
+    /**
+     * Toggles the paused state of the current puzzle, preserving elapsed time while paused.
+     *
+     * @return {@code true} if the state changed, {@code false} if pausing is not currently allowed.
+     */
+    public boolean togglePause() {
+        if (_sudokuBoard.getValue() == null
+                || Boolean.TRUE.equals(_isGenerating.getValue())
+                || Boolean.TRUE.equals(_isGameWon.getValue())
+                || Boolean.TRUE.equals(_isGameOverWithIncorrectBoard.getValue())) {
+            return false;
+        }
+
+        if (Boolean.TRUE.equals(_isPaused.getValue())) {
+            _isPaused.setValue(false);
+            startTimerIfNotRunning();
+        } else {
+            stopTimer();
+            _isPaused.setValue(true);
+        }
+        return true;
     }
 
     /**
@@ -226,7 +272,10 @@ public class SudokuViewModel extends ViewModel {
         SudokuBoard board = _sudokuBoard.getValue();
         Pair<Integer, Integer> selection = _selectedCell.getValue();
 
-        if (board == null || selection == null)
+        if (board == null || selection == null
+                || Boolean.TRUE.equals(_isPaused.getValue())
+                || Boolean.TRUE.equals(_isGameWon.getValue())
+                || Boolean.TRUE.equals(_isGameOverWithIncorrectBoard.getValue()))
             return;
 
         int row = selection.first;
@@ -245,13 +294,18 @@ public class SudokuViewModel extends ViewModel {
 
             if (number != 0) {
                 if (board.isMoveCorrect(row, col, number)) {
-                    scoreChange = switch (board.getCurrentDifficulty()) {
-                    case EASY -> 10;
-                    case MEDIUM -> 15;
-                    case HARD -> 20;
+                    currentStreak++;
+                    _currentStreak.setValue(currentStreak);
+                    int basePoints = switch (board.getCurrentDifficulty()) {
+                    case EASY -> 15;
+                    case MEDIUM -> 25;
+                    case HARD -> 40;
                     };
+                    scoreChange = Math.round(basePoints * streakMultiplier());
                 } else {
                     isError = true;
+                    currentStreak = 0;
+                    _currentStreak.setValue(0);
                     this.totalErrorsThisGame++;
                     _errorCount.setValue(this.totalErrorsThisGame);
                     scoreChange = -50;
@@ -280,7 +334,10 @@ public class SudokuViewModel extends ViewModel {
      */
     public boolean undoLastMove() {
         SudokuBoard board = _sudokuBoard.getValue();
-        if (board == null)
+        if (board == null
+                || Boolean.TRUE.equals(_isPaused.getValue())
+                || Boolean.TRUE.equals(_isGameWon.getValue())
+                || Boolean.TRUE.equals(_isGameOverWithIncorrectBoard.getValue()))
             return false;
 
         SudokuBoard.MoveRecord lastMove = board.undoMove();
@@ -291,6 +348,10 @@ public class SudokuViewModel extends ViewModel {
             // Revert the score change
             int currentScore = removeCompletionBonusFromScoreIfApplied();
             _score.setValue(Math.max(0, currentScore - lastMove.getScoreChange()));
+
+            // Undo breaks the streak — the player is revising a decision.
+            currentStreak = 0;
+            _currentStreak.setValue(0);
 
             // The game might no longer be in a won/lost state after an undo.
             _isGameWon.setValue(false);
@@ -314,7 +375,10 @@ public class SudokuViewModel extends ViewModel {
     public boolean clearSelectedCell() {
         SudokuBoard board = _sudokuBoard.getValue();
         Pair<Integer, Integer> selection = _selectedCell.getValue();
-        if (board == null || selection == null) {
+        if (board == null || selection == null
+                || Boolean.TRUE.equals(_isPaused.getValue())
+                || Boolean.TRUE.equals(_isGameWon.getValue())
+                || Boolean.TRUE.equals(_isGameOverWithIncorrectBoard.getValue())) {
             return false;
         }
 
@@ -375,9 +439,11 @@ public class SudokuViewModel extends ViewModel {
         bundle.putBoolean(STATE_IS_GAME_WON, Boolean.TRUE.equals(_isGameWon.getValue()));
         bundle.putBoolean(STATE_IS_GAME_OVER_WITH_INCORRECT_BOARD,
                 Boolean.TRUE.equals(_isGameOverWithIncorrectBoard.getValue()));
+        bundle.putBoolean(STATE_IS_PAUSED, Boolean.TRUE.equals(_isPaused.getValue()));
         bundle.putBoolean(STATE_COMPLETION_BONUS_APPLIED, completionBonusApplied);
         bundle.putInt(STATE_AWARDED_COMPLETION_BONUS, awardedCompletionBonus);
         bundle.putBoolean(STATE_WIN_STATS_RECORDED, winStatsRecorded);
+        bundle.putInt(STATE_CURRENT_STREAK, currentStreak);
 
         return new Pair<>(_sudokuBoard.getValue(), bundle);
     }
@@ -416,6 +482,10 @@ public class SudokuViewModel extends ViewModel {
         completionBonusApplied = bundleState.getBoolean(STATE_COMPLETION_BONUS_APPLIED, false);
         awardedCompletionBonus = bundleState.getInt(STATE_AWARDED_COMPLETION_BONUS, 0);
         winStatsRecorded = bundleState.getBoolean(STATE_WIN_STATS_RECORDED, false);
+        currentStreak = bundleState.getInt(STATE_CURRENT_STREAK, 0);
+        _currentStreak.setValue(currentStreak);
+        boolean restoredPaused = bundleState.getBoolean(STATE_IS_PAUSED, false);
+        _isPaused.setValue(restoredPaused);
 
         boolean restoredGameWon = bundleState.getBoolean(STATE_IS_GAME_WON, false);
         boolean restoredIncorrectBoard = bundleState.getBoolean(STATE_IS_GAME_OVER_WITH_INCORRECT_BOARD, false);
@@ -431,6 +501,8 @@ public class SudokuViewModel extends ViewModel {
         if (_sudokuBoard.getValue() != null && _sudokuBoard.getValue().isBoardFull()) {
             stopTimer();
             checkGameStatus();
+        } else if (restoredPaused) {
+            stopTimer();
         } else if (shouldResumeTimer) {
             startTimerIfNotRunning();
         } else {
@@ -505,6 +577,7 @@ public class SudokuViewModel extends ViewModel {
 
         if (board.isBoardFull()) {
             stopTimer();
+            _isPaused.setValue(false);
 
             // Check if the board is valid and all user cells are correct
             if (board.isCurrentBoardStateValidAccordingToRules() && board.areAllUserCellsCorrect()) {
@@ -526,7 +599,9 @@ public class SudokuViewModel extends ViewModel {
         } else {
             _isGameWon.setValue(false);
             _isGameOverWithIncorrectBoard.setValue(false);
-            startTimerIfNotRunning();
+            if (!Boolean.TRUE.equals(_isPaused.getValue())) {
+                startTimerIfNotRunning();
+            }
         }
     }
 
@@ -550,9 +625,23 @@ public class SudokuViewModel extends ViewModel {
         completionBonusApplied = false;
         awardedCompletionBonus = 0;
         winStatsRecorded = false;
+        currentStreak = 0;
+        _currentStreak.setValue(0);
+        _isPaused.setValue(false);
         _isGameWon.setValue(false);
         _isGameOverWithIncorrectBoard.setValue(false);
         chronometerBase = 0L;
+    }
+
+    /**
+     * Returns the score multiplier based on the current consecutive-correct-move streak.
+     * Thresholds: ≥10 → ×2.5 | ≥5 → ×2.0 | ≥3 → ×1.5 | otherwise → ×1.0
+     */
+    private float streakMultiplier() {
+        if (currentStreak >= 10) return 2.5f;
+        if (currentStreak >= 5)  return 2.0f;
+        if (currentStreak >= 3)  return 1.5f;
+        return 1.0f;
     }
 
     /**

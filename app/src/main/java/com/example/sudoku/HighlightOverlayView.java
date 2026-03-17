@@ -20,6 +20,8 @@ public class HighlightOverlayView extends View {
     private final Paint highlightPaintRowCol;
     /** Paint for highlighting the 3x3 block of the selected cell. */
     private final Paint highlightPaintBlock;
+    /** Paint for highlighting cells containing the same value as the selection. */
+    private final Paint highlightPaintSameValue;
     /** Paint for highlighting the currently selected cell. */
     private final Paint highlightPaintSelectedCell;
 
@@ -30,6 +32,8 @@ public class HighlightOverlayView extends View {
 
     /** The size of a single cell in pixels. */
     private float cellSize = 0f;
+    /** Optional mask of cells that should be emphasized because they share the selected value. */
+    private boolean[][] matchingValueMask = null;
 
     /**
      * Constructor for HighlightOverlayView. Initializes the paint objects used for highlighting.
@@ -48,9 +52,15 @@ public class HighlightOverlayView extends View {
 
         // Initialize paint for block highlighting
         highlightPaintBlock = new Paint();
-        highlightPaintBlock.setColor(ContextCompat.getColor(context, R.color.highlight_row_col));
+        highlightPaintBlock.setColor(ContextCompat.getColor(context, R.color.highlight_block));
         highlightPaintBlock.setStyle(Paint.Style.FILL);
         highlightPaintBlock.setAntiAlias(true);
+
+        // Initialize paint for matching-value highlighting
+        highlightPaintSameValue = new Paint();
+        highlightPaintSameValue.setColor(ContextCompat.getColor(context, R.color.highlight_same_value));
+        highlightPaintSameValue.setStyle(Paint.Style.FILL);
+        highlightPaintSameValue.setAntiAlias(true);
 
         // Initialize paint for the selected cell
         highlightPaintSelectedCell = new Paint();
@@ -84,6 +94,18 @@ public class HighlightOverlayView extends View {
         canvas.drawRect(0, selectedRow * cellSize, 9 * cellSize, (selectedRow + 1) * cellSize, highlightPaintRowCol);
         canvas.drawRect(selectedCol * cellSize, 0, (selectedCol + 1) * cellSize, 9 * cellSize, highlightPaintRowCol);
 
+        // Highlight cells containing the same value as the currently selected one.
+        if (matchingValueMask != null) {
+            for (int row = 0; row < matchingValueMask.length; row++) {
+                for (int col = 0; col < matchingValueMask[row].length; col++) {
+                    if (matchingValueMask[row][col] && (row != selectedRow || col != selectedCol)) {
+                        canvas.drawRect(col * cellSize, row * cellSize, (col + 1) * cellSize, (row + 1) * cellSize,
+                                highlightPaintSameValue);
+                    }
+                }
+            }
+        }
+
         // Highlight the selected cell on top of everything else
         canvas.drawRect(selectedCol * cellSize, selectedRow * cellSize, (selectedCol + 1) * cellSize,
                 (selectedRow + 1) * cellSize, highlightPaintSelectedCell);
@@ -95,11 +117,13 @@ public class HighlightOverlayView extends View {
      * @param row The row index of the cell to highlight. Can be null to clear selection.
      * @param col The column index of the cell to highlight. Can be null to clear selection.
      * @param cellSize The size of a single cell in the grid.
+     * @param matchingValueMask Optional mask for cells sharing the selected value.
      */
-    public void highlightCell(Integer row, Integer col, float cellSize) {
+    public void highlightCell(Integer row, Integer col, float cellSize, @Nullable boolean[][] matchingValueMask) {
         this.selectedRow = row;
         this.selectedCol = col;
         this.cellSize = cellSize;
+        this.matchingValueMask = matchingValueMask;
         invalidate(); // Force the view to redraw
     }
 }

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewOutlineProvider;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.GridLayout;
@@ -179,7 +180,9 @@ public class MainActivity extends AppCompatActivity {
 
             button.setBackground(ContextCompat.getDrawable(this, R.drawable.bg_number_pad_button));
             button.setTextColor(ContextCompat.getColor(this, R.color.onSurfaceVariant));
-            button.setElevation(dpToPx(2));
+            button.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
+            button.setElevation(dpToPx(4));
+            button.setTranslationZ(dpToPx(1));
 
             binding.numberPad.addView(button);
             numberPadButtons[i - 1] = button;
@@ -197,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, getString(R.string.no_moves_to_undo), Toast.LENGTH_SHORT).show();
             }
         });
+        binding.pauseButton.setOnClickListener(v -> viewModel.togglePause());
         binding.newGameButton.setOnClickListener(v -> showNewGameOptionsDialog());
     }
 
@@ -275,6 +279,26 @@ public class MainActivity extends AppCompatActivity {
 
         viewModel.getScore().observe(this, score -> binding.scoreText.setText(String.valueOf(score)));
 
+        viewModel.getCurrentStreak().observe(this, streak -> {
+            if (streak == null || streak < 3) {
+                binding.streakText.setVisibility(View.GONE);
+            } else {
+                float multiplier = streak >= 10 ? 2.5f : streak >= 5 ? 2.0f : 1.5f;
+                binding.streakText.setText(String.format(Locale.getDefault(),
+                        getString(R.string.streak_multiplier_format), multiplier));
+                if (binding.streakText.getVisibility() != View.VISIBLE) {
+                    binding.streakText.setVisibility(View.VISIBLE);
+                    binding.streakText.animate().alpha(0f).setDuration(0).start();
+                    binding.streakText.animate().alpha(1f).setDuration(250).start();
+                }
+            }
+        });
+
+        viewModel.isPaused().observe(this, isPaused -> {
+            updatePauseStateUi();
+            refreshInteractiveControls();
+        });
+
         viewModel.isGameWon().observe(this, isWon -> {
             if (isWon != null && isWon) {
                 recordWinStatsIfNeeded();
@@ -304,6 +328,7 @@ public class MainActivity extends AppCompatActivity {
             binding.sudokuGridOverlay.setVisibility(visibility);
             binding.numberPad.setVisibility(visibility);
 
+            updatePauseStateUi();
             refreshInteractiveControls();
         });
 
@@ -359,6 +384,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+        updateHighlightOverlay(viewModel.getSelectedCell().getValue());
     }
 
     /**
@@ -367,9 +393,9 @@ public class MainActivity extends AppCompatActivity {
     private void updateHighlightOverlay(Pair<Integer, Integer> selection) {
         float cellSize = (binding.sudokuContainer.getWidth() > 0) ? (float) binding.sudokuContainer.getWidth() / 9.0f : 0f;
         if (selection != null) {
-            highlightOverlayView.highlightCell(selection.first, selection.second, cellSize);
+            highlightOverlayView.highlightCell(selection.first, selection.second, cellSize, buildMatchingValueMask(selection));
         } else {
-            highlightOverlayView.highlightCell(null, null, cellSize);
+            highlightOverlayView.highlightCell(null, null, cellSize, null);
         }
     }
 
@@ -378,6 +404,11 @@ public class MainActivity extends AppCompatActivity {
      */
     private void refreshInteractiveControls() {
         boolean isGenerating = Boolean.TRUE.equals(viewModel.isGenerating().getValue());
+        boolean isPaused = Boolean.TRUE.equals(viewModel.isPaused().getValue());
+        boolean isGameWon = Boolean.TRUE.equals(viewModel.isGameWon().getValue());
+        boolean isGameOver = Boolean.TRUE.equals(viewModel.isGameOverWithIncorrectBoard().getValue());
+        boolean isGameEnded = isGameWon || isGameOver;
+        boolean canTogglePause = viewModel.getSudokuBoard().getValue() != null && !isGameEnded;
         SudokuCell selectedEditableCell = getSelectedEditableCell();
         boolean hasEditableSelection = selectedEditableCell != null;
         boolean canClear = hasEditableSelection
@@ -385,13 +416,55 @@ public class MainActivity extends AppCompatActivity {
 
         for (Button button : numberPadButtons) {
             if (button != null) {
-                updateControlState(button, !isGenerating && hasEditableSelection);
+                updateControlState(button, !isGenerating && !isPaused && !isGameEnded && hasEditableSelection);
             }
         }
 
-        updateControlState(binding.clearButton, !isGenerating && canClear);
-        updateControlState(binding.undoButton, !isGenerating);
+        updateControlState(binding.clearButton, !isGenerating && !isPaused && !isGameEnded && canClear);
+        updateControlState(binding.undoButton, !isGenerating && !isPaused && !isGameEnded);
+        updateControlState(binding.pauseButton, !isGenerating && canTogglePause);
         updateControlState(binding.newGameButton, !isGenerating);
+    }
+
+    /**
+     * Builds a mask for cells containing the same value as the current selection.
+     */
+    private boolean[][] buildMatchingValueMask(Pair<Integer, Integer> selection) {
+        SudokuBoard board = viewModel.getSudokuBoard().getValue();
+        if (board == null || selection == null) {
+            return null;
+        }
+
+        SudokuCell selectedCell = board.getCell(selection.first, selection.second);
+        if (selectedCell == null || selectedCell.getValue() == 0) {
+            return null;
+        }
+
+        int targetValue = selectedCell.getValue();
+        boolean[][] matchingValueMask = new boolean[9][9];
+        boolean hasMatches = false;
+
+        for (int row = 0; row < 9; row++) {
+            for (int col = 0; col < 9; col++) {
+                SudokuCell cell = board.getCell(row, col);
+                if (cell != null && cell.getValue() == targetValue) {
+                    matchingValueMask[row][col] = true;
+                    hasMatches = true;
+                }
+            }
+        }
+
+        return hasMatches ? matchingValueMask : null;
+    }
+
+    /**
+     * Keeps the pause button label and overlay synchronized with ViewModel state.
+     */
+    private void updatePauseStateUi() {
+        boolean paused = Boolean.TRUE.equals(viewModel.isPaused().getValue());
+        boolean generating = Boolean.TRUE.equals(viewModel.isGenerating().getValue());
+        binding.pauseButton.setText(paused ? R.string.resume_button : R.string.pause_button);
+        binding.pauseStateContainer.setVisibility(paused && !generating ? View.VISIBLE : View.GONE);
     }
 
     /**

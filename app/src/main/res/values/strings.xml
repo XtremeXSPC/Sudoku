@@ -22,13 +22,18 @@
 
     <string name="timer_default">00:00</string>
     <string name="loading_puzzle">Preparazione della griglia…</string>
+    <string name="streak_multiplier_format">×%.1f</string>
 
     <string name="clear_button">Cancella</string>
     <string name="undo_button">Annulla</string>
-    <string name="new_game_button">Nuova Partita</string>
+    <string name="pause_button">Pausa</string>
+    <string name="resume_button">Riprendi</string>
+    <string name="new_game_button">Nuova\nPartita</string>
     <string name="no_moves_to_undo">Nessuna mossa da annullare</string>
     <string name="nothing_to_clear">Niente da cancellare</string>
     <string name="puzzle_generation_failed">Impossibile generare una nuova griglia. Riprova.</string>
+    <string name="paused_title">In pausa</string>
+    <string name="paused_message">Il tempo e i controlli si fermano finché non riprendi la partita.</string>
 
     <string name="new_game_dialog_title">Nuova partita</string>
     <string name="new_game_same_difficulty_message">Vuoi ricominciare in modalità %1$s o tornare alla home per scegliere un’altra difficoltà?</string>
