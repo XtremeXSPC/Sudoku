@@ -63,9 +63,9 @@ public class SudokuViewModelGameplayTest {
      */
     @Test
     public void correctMove_awardsPointsByDifficultyWithoutTriggeringEndgame() throws Exception {
-        assertScoreForCorrectMove(SudokuBoard.Difficulty.EASY, 10);
-        assertScoreForCorrectMove(SudokuBoard.Difficulty.MEDIUM, 15);
-        assertScoreForCorrectMove(SudokuBoard.Difficulty.HARD, 20);
+        assertScoreForCorrectMove(SudokuBoard.Difficulty.EASY, 15);
+        assertScoreForCorrectMove(SudokuBoard.Difficulty.MEDIUM, 25);
+        assertScoreForCorrectMove(SudokuBoard.Difficulty.HARD, 40);
     }
 
     /**
@@ -100,11 +100,11 @@ public class SudokuViewModelGameplayTest {
 
         viewModel.inputNumber(SOLUTION[0][0]);
 
-        assertEquals(Integer.valueOf(10), viewModel.getScore().getValue());
+        assertEquals(Integer.valueOf(15), viewModel.getScore().getValue());
         assertEquals(SOLUTION[0][0], viewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
 
         assertTrue(viewModel.clearSelectedCell());
-        assertEquals(Integer.valueOf(10), viewModel.getScore().getValue());
+        assertEquals(Integer.valueOf(15), viewModel.getScore().getValue());
         assertEquals(0, viewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
         assertTrue(viewModel.getSudokuBoard().getValue().getCell(0, 0).isCorrect());
     }
@@ -133,7 +133,7 @@ public class SudokuViewModelGameplayTest {
         viewModel.inputNumber(SOLUTION[0][0]);
 
         assertEquals(SOLUTION[0][0], viewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
-        assertEquals(Integer.valueOf(15), viewModel.getScore().getValue());
+        assertEquals(Integer.valueOf(25), viewModel.getScore().getValue());
     }
 
     /**

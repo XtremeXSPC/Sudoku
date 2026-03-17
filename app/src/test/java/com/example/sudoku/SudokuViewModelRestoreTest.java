@@ -118,10 +118,10 @@ public class SudokuViewModelRestoreTest {
     }
 
     /**
-     * Undoing the winning move after restore should remove the persisted completion bonus first.
+     * Undo must be blocked when the game has been won; score and board state must remain unchanged.
      */
     @Test
-    public void undoAfterRestoredWin_removesCompletionBonusBeforeRevertingTheWinningMove() throws Exception {
+    public void undoAfterRestoredWin_isBlockedWhenGameIsWon() throws Exception {
         SudokuViewModel originalViewModel = new SudokuViewModel();
         originalViewModel.restoreState(createWonBoardWithWinningMove(),
                 createBundle(-1, -1, 0, 0, 1210, false, true, false, true, 1200));
@@ -131,10 +131,10 @@ public class SudokuViewModelRestoreTest {
         SudokuViewModel restoredViewModel = new SudokuViewModel();
         restoredViewModel.restoreState(savedState.first, savedState.second);
 
-        assertTrue(restoredViewModel.undoLastMove());
-        assertEquals(Integer.valueOf(0), restoredViewModel.getScore().getValue());
-        assertFalse(Boolean.TRUE.equals(restoredViewModel.isGameWon().getValue()));
-        assertEquals(0, restoredViewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
+        assertFalse(restoredViewModel.undoLastMove());
+        assertEquals(Integer.valueOf(1210), restoredViewModel.getScore().getValue());
+        assertEquals(Boolean.TRUE, restoredViewModel.isGameWon().getValue());
+        assertEquals(SOLUTION[0][0], restoredViewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
     }
 
     /**

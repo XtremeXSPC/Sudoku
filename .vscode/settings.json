@@ -41,7 +41,7 @@
   //===-------------- Files and Search ---------------===//
   "files.exclude": {
     "**/.gradle": true,
-    "**/build": true,
+    "!**/build": true,
     "**/.idea": true,
     "**/*.iml": true,
     "local.properties": true
