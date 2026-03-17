@@ -29,7 +29,7 @@ This app mixes a small Compose entry point with a ViewBinding-driven game screen
   - `isCurrentBoardStateValidAccordingToRules` performs rule-only validation on the current grid (no duplicates in rows/cols/blocks).
   - `areAllUserCellsCorrect` verifies that all user-entered numbers match the solution when the board is full.
 - Scoring and errors:
-  - Positive points per correct entry scale with difficulty; -50 points per error, never dropping below zero.
+  - Positive points per correct entry scale with difficulty; incorrect moves apply a softer difficulty-scaled penalty, never dropping the score below zero.
   - Undo re-applies the stored score delta, but the error counter is cumulative across the whole match and does not decrease on undo.
   - Finishing a valid board awards a time-based bonus plus a difficulty bonus.
 

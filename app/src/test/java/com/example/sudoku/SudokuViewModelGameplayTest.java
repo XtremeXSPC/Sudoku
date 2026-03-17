@@ -79,7 +79,7 @@ public class SudokuViewModelGameplayTest {
 
         viewModel.inputNumber(9);
 
-        assertEquals(Integer.valueOf(0), viewModel.getScore().getValue());
+        assertEquals(Integer.valueOf(25), viewModel.getScore().getValue());
         assertEquals(Integer.valueOf(1), viewModel.getErrorCount().getValue());
         assertFalse(viewModel.getSudokuBoard().getValue().getCell(0, 0).isCorrect());
 
@@ -87,6 +87,22 @@ public class SudokuViewModelGameplayTest {
         assertEquals(Integer.valueOf(40), viewModel.getScore().getValue());
         assertEquals(Integer.valueOf(1), viewModel.getErrorCount().getValue());
         assertEquals(0, viewModel.getSudokuBoard().getValue().getCell(0, 0).getValue());
+    }
+
+    /**
+     * An error should reduce score by a moderate penalty, not wipe out early progress.
+     */
+    @Test
+    public void incorrectMove_appliesDifficultyPenaltyWithoutResettingScoreToZero() throws Exception {
+        SudokuViewModel viewModel = new SudokuViewModel();
+        viewModel.restoreState(createBoardWithOpenCells(SudokuBoard.Difficulty.MEDIUM, new int[][] { { 0, 0 }, { 0, 1 } }),
+                createBundle(0, 0, 25));
+
+        viewModel.inputNumber(9);
+
+        assertEquals(Integer.valueOf(10), viewModel.getScore().getValue());
+        assertEquals(Integer.valueOf(1), viewModel.getErrorCount().getValue());
+        assertEquals(Integer.valueOf(0), viewModel.getCurrentStreak().getValue());
     }
 
     /**

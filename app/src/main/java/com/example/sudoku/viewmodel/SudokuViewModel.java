@@ -296,11 +296,7 @@ public class SudokuViewModel extends ViewModel {
                 if (board.isMoveCorrect(row, col, number)) {
                     currentStreak++;
                     _currentStreak.setValue(currentStreak);
-                    int basePoints = switch (board.getCurrentDifficulty()) {
-                    case EASY -> 15;
-                    case MEDIUM -> 25;
-                    case HARD -> 40;
-                    };
+                    int basePoints = basePointsForDifficulty(board.getCurrentDifficulty());
                     scoreChange = Math.round(basePoints * streakMultiplier());
                 } else {
                     isError = true;
@@ -308,7 +304,7 @@ public class SudokuViewModel extends ViewModel {
                     _currentStreak.setValue(0);
                     this.totalErrorsThisGame++;
                     _errorCount.setValue(this.totalErrorsThisGame);
-                    scoreChange = -50;
+                    scoreChange = -errorPenaltyForDifficulty(board.getCurrentDifficulty());
                 }
             }
 
@@ -642,6 +638,30 @@ public class SudokuViewModel extends ViewModel {
         if (currentStreak >= 5)  return 2.0f;
         if (currentStreak >= 3)  return 1.5f;
         return 1.0f;
+    }
+
+    /**
+     * Returns the base score awarded for a correct move on the provided difficulty.
+     */
+    private int basePointsForDifficulty(SudokuBoard.Difficulty difficulty) {
+        return switch (difficulty) {
+        case EASY -> 15;
+        case MEDIUM -> 25;
+        case HARD -> 40;
+        };
+    }
+
+    /**
+     * Returns the score penalty for an incorrect move on the provided difficulty.
+     * The penalty is intentionally softer than the reward curve so a single mistake
+     * does not wipe out the score earned from the first few correct moves.
+     */
+    private int errorPenaltyForDifficulty(SudokuBoard.Difficulty difficulty) {
+        return switch (difficulty) {
+        case EASY -> 10;
+        case MEDIUM -> 15;
+        case HARD -> 20;
+        };
     }
 
     /**

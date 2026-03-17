@@ -15,7 +15,7 @@ An Android Sudoku app with a Compose-based home flow (`HomeActivity` + `StatsAct
 - **Fresh puzzles per game**: Generates solvable boards with a uniqueness check before play starts.
 - **Difficulty selector + resume**: Start a new Easy, Medium, or Hard puzzle, or resume the latest in-progress game from the Compose home screen.
 - **Real-time validation**: Highlights wrong entries immediately; per-move scoring and an error counter keep feedback clear.
-- **Timer and scoring**: Time-based bonus plus difficulty bonuses; score never drops below zero.
+- **Timer and scoring**: Time-based bonus plus difficulty bonuses, with softer difficulty-scaled penalties on mistakes; score never drops below zero.
 - **Undo support**: Revert the latest user move while keeping score in sync; the error counter remains historical across the whole game.
 - **Local stats**: Tracks wins, best time, and best score per difficulty without introducing accounts or cloud state.
 - **Config-change safe**: Board state, selection, timer, and counters survive rotations and process death via the ViewModel bundle.
